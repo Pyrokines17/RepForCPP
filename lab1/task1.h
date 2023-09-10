@@ -1,7 +1,8 @@
 #pragma once
 
 // TODO: переименовать пространство имен
-namespace task {
+
+namespace sum {
 
 int plus(int x, int y);
 
