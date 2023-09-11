@@ -66,15 +66,23 @@ public:
     };
 
     // доступ / вставка элемента по ключу
-    std::string& operator[](const std::string& key);
+    std::string& operator[](const std::string& key) {
+
+    };
 
     // возвращает true, если запись с таким ключом присутствует в таблице
-    bool contains(const std::string& key);
+    bool contains(const std::string& key) {
+
+    };
 
     // удаление элемента по ключу, возвращает количество удаленных элементов (0 или 1)
-    std::size_t erase(const std::string& key);
+    std::size_t erase(const std::string& key) {
+
+    };
 
     // очистка таблицы, после которой size() возвращает 0, а contains() - false на любой ключ
-    void clear();
+    void clear() {
+
+    };
 
 };

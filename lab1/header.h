@@ -3,6 +3,19 @@
 #include <string>
 
 class FlatMap {
+    struct object {
+        std::string key;
+
+    private:
+        std::string value;
+
+    };
+
+    object* map;
+
+    int capacity;
+    int count;
+
 public:
 
     // стандартный конструктор
