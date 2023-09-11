@@ -1,88 +1,61 @@
 #include "header.h"
 
-class FlatMap {
-    struct object {
-        std::string key;
+FlatMap::FlatMap() {
+    map = new object[5];
+    capacity = 5;
+    count = 0;
+};
 
-    private:
-        std::string value;
+FlatMap::FlatMap(const FlatMap& other_map) {
+    map = new object[other_map.capacity];
 
-    };
+    for (int i = 0; i < other_map.capacity; i++) {
+        map[i] = other_map.map[i];
+    }
 
-    object* map;
+    capacity = other_map.capacity;
+    count = other_map.count;
+};
 
-    int capacity;
-    int count;
+FlatMap::~FlatMap() {
+    delete[] map;
+};
 
-public:
-
-    // стандартный конструктор
-    FlatMap() {
-        map = new object[5];
-        capacity = 5;
-        count = 0;
-    };
-
-    // конструктор копирования
-    FlatMap(const FlatMap& other_map) {
-        map = new object[other_map.capacity];
-
-        for (int i = 0; i < other_map.capacity; i++) {
-            map[i] = other_map.map[i];
-        }
-
-        capacity = other_map.capacity;
-        count = other_map.count;
-    };
-
-    // деструктор
-    ~FlatMap() {
-        delete[] map;
-    };
-
-    // оператор присваивания
-    FlatMap& operator=(const FlatMap& other_map) {
-        if (this == &other_map) {
-            return *this;
-        }
-
-        delete[] map;
-
-        map = new object[other_map.capacity];
-
-        for (int i = 0; i < other_map.capacity; i++) {
-            map[i] = other_map.map[i];
-        }
-
-        capacity = other_map.capacity;
-        count = other_map.count;
-
+FlatMap& FlatMap::operator=(const FlatMap& other_map) {
+    if (this == &other_map) {
         return *this;
-    };
+    }
 
-    // получить количество элементов в таблице
-    std::size_t size() const {
-        return count;
-    };
+    delete[] map;
 
-    // доступ / вставка элемента по ключу
-    std::string& operator[](const std::string& key) {
+    map = new object[other_map.capacity];
 
-    };
+    for (int i = 0; i < other_map.capacity; i++) {
+        map[i] = other_map.map[i];
+    }
 
-    // возвращает true, если запись с таким ключом присутствует в таблице
-    bool contains(const std::string& key) {
+    capacity = other_map.capacity;
+    count = other_map.count;
 
-    };
+    return *this;
+};
 
-    // удаление элемента по ключу, возвращает количество удаленных элементов (0 или 1)
-    std::size_t erase(const std::string& key) {
+std::size_t FlatMap::size() const {
+    return count;
+};
 
-    };
+std::string& FlatMap::operator[](const std::string& key) {
 
-    // очистка таблицы, после которой size() возвращает 0, а contains() - false на любой ключ
-    void clear() {
+};
 
-    };
+bool FlatMap::contains(const std::string& key) {
+
+};
+
+std::size_t FlatMap::erase(const std::string& key) {
+
+};
+
+void FlatMap::clear() {
 
 };
