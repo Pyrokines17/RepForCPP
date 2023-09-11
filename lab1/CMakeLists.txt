@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 3.14)
 set(CMAKE_CXX_STANDARD 17)
 
 # TODO: переименовать проект
-project(nsuoop-cpp-template)
+project(LabWork1)
 
 # задаем имя исполняемого файла основной программы
 set(exe_name ${PROJECT_NAME})
@@ -26,7 +26,7 @@ endif()
 
 # описываем основную библиотеку, т.е. библиотеку, содержащую все cpp-файлы, кроме main.cpp
 # TODO: отредактировать список cpp-файлов
-add_library(corelib OBJECT task1.cpp task2.cpp)
+add_library(corelib OBJECT source.cpp)
 
 # описываем исполняемый файл основной программы: это main.cpp + основная библиотека
 add_executable(${exe_name} main.cpp)
@@ -47,6 +47,6 @@ FetchContent_MakeAvailable(googletest)
 
 # описываем исполняемый файл программы для запуска тестов: это cpp-файлы тестов + основная библиотека + библиотека gtest_main
 # наш собственный main.cpp здесь не нужен, т.к. функция main реализована в gtest_main
-add_executable(${test_name} task1_test.cpp task2_test.cpp)
+add_executable(${test_name} tests.cpp)
 target_link_libraries(${test_name} gtest_main)
 target_link_libraries(${test_name} corelib)
