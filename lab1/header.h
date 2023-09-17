@@ -1,14 +1,11 @@
 #pragma once
 
-#include <string>
+#include <iostream>
 
 class FlatMap {
     struct object {
         std::string key;
-
-    private:
         std::string value;
-
     };
 
     object* map;
@@ -16,8 +13,11 @@ class FlatMap {
     int capacity;
     int count;
 
-public:
+    int binSearch(object arr[], int low, int high, std::string x);
+    void shift(object* map, int count, int id);
+    void altShift(object* map, int count, int id);
 
+public:
     // стандартный конструктор
     FlatMap();
 
