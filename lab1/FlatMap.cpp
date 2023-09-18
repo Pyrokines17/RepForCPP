@@ -1,6 +1,7 @@
-#include "Header.h"
+#include "FlatMap.h"
+#include <algorithm>
 
-int FlatMap::binSearch(object arr[], int low, int high, std::string x) {
+int FlatMap::binSearch(object arr[], int low, int high, std::string x) { 
     while (low <= high) {
         int mid = low + (high - low) / 2;
 
@@ -19,40 +20,37 @@ int FlatMap::binSearch(object arr[], int low, int high, std::string x) {
     return (-1 * (low > high ? low : high) - 1);
 };
 
-void FlatMap::shift(object* map, int count, int id) {
-    int end = count;
+void FlatMap::shift(object* place, int border, int index, std::string mode) {
+    if (mode == "r") { //м.б. улучшение сдвига...
+        int end = border;
 
-    while (end != id) {
-        map[end].key = map[end - 1].key;
-        map[end].value = map[end - 1].value;
+        while (end != index) {
+            place[end] = place[end - 1];
 
-        end--;
+            end--;
+        }
     }
-}
+    else {
+        int begin = index;
 
-void FlatMap::altShift(object* map, int count, int id) {
-    int begin = id;
+        while (begin != border - 1) { 
+            map[begin] = map[begin + 1];
 
-    while (begin != count - 1) {
-        map[begin].key = map[begin + 1].key;
-        map[begin].value = map[begin + 1].value;
-
-        begin++;
+            begin++;
+        }
     }
 }
 
 FlatMap::FlatMap() {
-    map = new object[4];
-    capacity = 4;
+    map = new object[newCells];
+    capacity = newCells;
     count = 0;
 };
 
 FlatMap::FlatMap(const FlatMap& other_map) {
     map = new object[other_map.capacity];
 
-    for (int i = 0; i < other_map.capacity; i++) {
-        map[i] = other_map.map[i];
-    }
+    std::copy(other_map.map, other_map.map + other_map.count, map);
 
     capacity = other_map.capacity;
     count = other_map.count;
@@ -71,9 +69,7 @@ FlatMap& FlatMap::operator=(const FlatMap& other_map) {
 
     map = new object[other_map.capacity];
 
-    for (int i = 0; i < other_map.capacity; i++) {
-        map[i] = other_map.map[i];
-    }
+    std::copy(other_map.map, other_map.map + other_map.count, map);
 
     capacity = other_map.capacity;
     count = other_map.count;
@@ -94,12 +90,14 @@ std::string& FlatMap::operator[](const std::string& key) {
     }
 
     if (count == capacity) {
-        object* altMap = new object[capacity + 4];
-        memcpy(altMap, map, count * sizeof(object));
+        object* altMap = new object[static_cast<std::size_t>(capacity) + newCells];
+
+        std::copy(map, map + count, altMap);
+
         delete[] map;
 
-        map = altMap;
-        capacity += 4;
+        map = altMap; //третий пункт доп.задачи
+        capacity += newCells;
     };
 
     int id = binSearch(map, 0, count - 1, key);
@@ -108,7 +106,7 @@ std::string& FlatMap::operator[](const std::string& key) {
         id = (id + 1) * -1;
 
         if (map[id].key != "") {
-            shift(map, count, id);
+            shift(map, count, id, "r");
         }
 
         map[id].key = key;
@@ -119,14 +117,7 @@ std::string& FlatMap::operator[](const std::string& key) {
 };
 
 bool FlatMap::contains(const std::string& key) {
-    int id = binSearch(map, 0, count - 1, key);
-
-    if (id < 0) {
-        return false;
-    }
-    else {
-        return true;
-    }
+    return binSearch(map, 0, count - 1, key) < 0 ? false : true;
 };
 
 std::size_t FlatMap::erase(const std::string& key) {
@@ -137,7 +128,7 @@ std::size_t FlatMap::erase(const std::string& key) {
     }
     else {
         if (id != capacity - 1 && map[id + 1].key != "") {
-            altShift(map, count, id);
+            shift(map, count, id, "l");
         }
 
         map[count - 1].key = "";
@@ -150,8 +141,8 @@ std::size_t FlatMap::erase(const std::string& key) {
 };
 
 void FlatMap::clear() {
-    while (count > 0) {
-        map[count - 1].key = "";
+    while (count > 0) { //м.б. сделать удаление-создание мэпы?
+        map[count - 1].key = ""; 
         map[count - 1].value = "";
 
         count--;

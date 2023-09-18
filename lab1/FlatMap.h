@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#define newCells 4
+
 class FlatMap {
     struct object {
         std::string key;
@@ -14,8 +16,7 @@ class FlatMap {
     int count;
 
     int binSearch(object arr[], int low, int high, std::string x);
-    void shift(object* map, int count, int id);
-    void altShift(object* map, int count, int id);
+    void shift(object* place, int border, int index, std::string mode);
 
 public:
     // стандартный конструктор
