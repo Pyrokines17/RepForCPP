@@ -26,7 +26,6 @@ void FlatMap::shift(object* place, int border, int index, std::string mode) {
 
         while (end != index) {
             place[end] = place[end - 1];
-
             end--;
         }
     }
@@ -35,7 +34,6 @@ void FlatMap::shift(object* place, int border, int index, std::string mode) {
 
         while (begin != border - 1) { 
             map[begin] = map[begin + 1];
-
             begin++;
         }
     }
@@ -66,13 +64,10 @@ FlatMap& FlatMap::operator=(const FlatMap& other_map) {
     }
 
     delete[] map;
+    map = nullptr;
 
-    map = new object[other_map.capacity];
-
-    std::copy(other_map.map, other_map.map + other_map.count, map);
-
-    capacity = other_map.capacity;
-    count = other_map.count;
+    FlatMap copy(other_map);
+    std::swap(copy, *this);
 
     return *this;
 };
@@ -82,36 +77,41 @@ std::size_t FlatMap::size() const {
 };
 
 std::string& FlatMap::operator[](const std::string& key) {
-    if (count == 0) {
-        map[0].key = key;
-        count++;
+    FlatMap copy(*this);
+
+    if (copy.count == 0) {
+        copy.map[0].key = key;
+        copy.count++;
+
+        std::swap(copy, *this);
 
         return map[0].value;
     }
 
-    if (count == capacity) {
-        object* altMap = new object[static_cast<std::size_t>(capacity) + newCells];
+    if (copy.count == copy.capacity) {
+        object* altMap = new object[static_cast<std::size_t>(copy.capacity) + newCells];
+        std::copy(copy.map, copy.map + copy.count, altMap);
 
-        std::copy(map, map + count, altMap);
+        delete[] copy.map;
 
-        delete[] map;
-
-        map = altMap; //третий пункт доп.задачи
-        capacity += newCells;
+        copy.map = altMap;
+        copy.capacity += newCells;
     };
 
-    int id = binSearch(map, 0, count - 1, key);
+    int id = binSearch(copy.map, 0, copy.count - 1, key);
 
     if (id < 0) {
         id = (id + 1) * -1;
 
-        if (map[id].key != "") {
-            shift(map, count, id, "r");
+        if (copy.map[id].key != "") {
+            shift(copy.map, copy.count, id, "r");
         }
 
-        map[id].key = key;
-        count++;
+        copy.map[id].key = key;
+        copy.count++;
     }
+
+    std::swap(copy, *this);
 
     return map[id].value;
 };
@@ -120,31 +120,63 @@ bool FlatMap::contains(const std::string& key) {
     return binSearch(map, 0, count - 1, key) < 0 ? false : true;
 };
 
-std::size_t FlatMap::erase(const std::string& key) {
-    int id = binSearch(map, 0, count - 1, key);
+std::size_t FlatMap::erase(const std::string& key) { //найти причину прикола
+    FlatMap copy(*this);
+
+    int id = binSearch(copy.map, 0, copy.count - 1, key);
 
     if (id < 0) {
+        std::swap(copy, *this); //нужен ли здесь своп...
+
         return 0;
     }
     else {
-        if (id != capacity - 1 && map[id + 1].key != "") {
-            shift(map, count, id, "l");
+        if (id != copy.capacity - 1 && copy.map[id + 1].key != "") {
+            shift(copy.map, copy.count, id, "l");
         }
 
-        map[count - 1].key = "";
-        map[count - 1].value = "";
+        copy.map[copy.count - 1].key = "";
+        copy.map[copy.count - 1].value = "";
+        copy.count--;
 
-        count--;
+        std::swap(copy, *this);
 
         return 1;
     }
 };
 
 void FlatMap::clear() {
-    while (count > 0) { //м.б. сделать удаление-создание мэпы?
-        map[count - 1].key = ""; 
-        map[count - 1].value = "";
+    FlatMap copy(*this);
 
-        count--;
+    while (copy.count > 0) { //м.б. сделать удаление-создание мэпы?
+        copy.map[copy.count - 1].key = ""; 
+        copy.map[copy.count - 1].value = "";
+        copy.count--;
     }
+
+    std::swap(copy, *this);
+};
+
+FlatMap::FlatMap(FlatMap&& x) noexcept {
+    map = x.map;
+    capacity = x.capacity;
+    count = x.count;
+
+    x.map = nullptr;
+};
+
+FlatMap& FlatMap::operator=(FlatMap&& x) noexcept {
+    if (this == &x) {
+        return *this;
+    }
+
+    delete[] map;
+
+    map = x.map;
+    capacity = x.capacity;
+    count = x.count;
+
+    x.map = nullptr;
+
+    return *this;
 };

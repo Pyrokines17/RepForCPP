@@ -3,6 +3,7 @@
 #include <iostream>
 
 #define newCells 4
+//Делать ли define copy.sth...
 
 class FlatMap {
     struct object {
@@ -45,5 +46,11 @@ public:
 
     // очистка таблицы, после которой size() возвращает 0, а contains() - false на любой ключ
     void clear();
+
+    //конструктор перемещения
+    FlatMap(FlatMap&& x) noexcept;
+
+    //оператор перемещения
+    FlatMap& operator=(FlatMap&& x) noexcept;
 
 };
