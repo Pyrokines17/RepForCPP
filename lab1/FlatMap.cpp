@@ -20,8 +20,8 @@ int FlatMap::binSearch(object arr[], int low, int high, std::string x) {
     return (-1 * (low > high ? low : high) - 1);
 };
 
-void FlatMap::shift(object* place, int border, int index, std::string mode) {
-    if (mode == "r") { //м.б. улучшение сдвига...
+void FlatMap::shift(object* place, int border, int index, std::string mode) { 
+    if (mode == "r") { 
         int end = border;
 
         while (end != index) {
@@ -33,10 +33,18 @@ void FlatMap::shift(object* place, int border, int index, std::string mode) {
         int begin = index;
 
         while (begin != border - 1) { 
-            map[begin] = map[begin + 1];
+            place[begin] = place[begin + 1];
             begin++;
         }
     }
+}
+
+void swap(FlatMap& m1, FlatMap& m2) {
+    using std::swap;
+
+    swap(m1.map, m2.map);
+    swap(m1.capacity, m2.capacity);
+    swap(m1.count, m2.count);
 }
 
 FlatMap::FlatMap() {
@@ -63,11 +71,8 @@ FlatMap& FlatMap::operator=(const FlatMap& other_map) {
         return *this;
     }
 
-    delete[] map;
-    map = nullptr;
-
     FlatMap copy(other_map);
-    std::swap(copy, *this);
+    swap(copy, *this); 
 
     return *this;
 };
@@ -83,7 +88,7 @@ std::string& FlatMap::operator[](const std::string& key) {
         copy.map[0].key = key;
         copy.count++;
 
-        std::swap(copy, *this);
+        swap(copy, *this);
 
         return map[0].value;
     }
@@ -111,7 +116,7 @@ std::string& FlatMap::operator[](const std::string& key) {
         copy.count++;
     }
 
-    std::swap(copy, *this);
+    swap(copy, *this);
 
     return map[id].value;
 };
@@ -120,41 +125,37 @@ bool FlatMap::contains(const std::string& key) {
     return binSearch(map, 0, count - 1, key) < 0 ? false : true;
 };
 
-std::size_t FlatMap::erase(const std::string& key) { //найти причину прикола
-    FlatMap copy(*this);
-
-    int id = binSearch(copy.map, 0, copy.count - 1, key);
+std::size_t FlatMap::erase(const std::string& key) { 
+    int id = binSearch(map, 0, count - 1, key);
 
     if (id < 0) {
-        std::swap(copy, *this); //нужен ли здесь своп...
-
         return 0;
     }
     else {
+        FlatMap copy(*this);
+
         if (id != copy.capacity - 1 && copy.map[id + 1].key != "") {
             shift(copy.map, copy.count, id, "l");
         }
 
-        copy.map[copy.count - 1].key = "";
+        copy.map[copy.count - 1].key = ""; 
         copy.map[copy.count - 1].value = "";
         copy.count--;
 
-        std::swap(copy, *this);
+        swap(copy, *this);
 
         return 1;
     }
 };
 
-void FlatMap::clear() {
+void FlatMap::clear() { 
     FlatMap copy(*this);
 
-    while (copy.count > 0) { //м.б. сделать удаление-создание мэпы?
-        copy.map[copy.count - 1].key = ""; 
-        copy.map[copy.count - 1].value = "";
-        copy.count--;
-    }
+    delete[] copy.map;
+    copy.map = new object[copy.capacity];
+    copy.count = 0;
 
-    std::swap(copy, *this);
+    swap(copy, *this);
 };
 
 FlatMap::FlatMap(FlatMap&& x) noexcept {
@@ -163,20 +164,16 @@ FlatMap::FlatMap(FlatMap&& x) noexcept {
     count = x.count;
 
     x.map = nullptr;
+    x.count = 0;
 };
 
-FlatMap& FlatMap::operator=(FlatMap&& x) noexcept {
+FlatMap& FlatMap::operator=(FlatMap&& x) noexcept { 
     if (this == &x) {
         return *this;
     }
 
-    delete[] map;
-
-    map = x.map;
-    capacity = x.capacity;
-    count = x.count;
-
-    x.map = nullptr;
+    FlatMap copy(std::move(x));
+    swap(copy, *this);
 
     return *this;
 };

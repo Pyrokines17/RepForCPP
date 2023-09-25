@@ -3,7 +3,6 @@
 #include <iostream>
 
 #define newCells 4
-//Делать ли define copy.sth...
 
 class FlatMap {
     struct object {
@@ -18,6 +17,8 @@ class FlatMap {
 
     int binSearch(object arr[], int low, int high, std::string x);
     void shift(object* place, int border, int index, std::string mode);
+
+    friend void swap(FlatMap& m1, FlatMap& m2);
 
 public:
     // стандартный конструктор

@@ -31,5 +31,9 @@ int main(void) {
     student1.size();
     student1.contains("first_name");
 
+    FlatMap student3(std::move(student1));
+
+    student3 = std::move(student2);
+
     return 0;
 }

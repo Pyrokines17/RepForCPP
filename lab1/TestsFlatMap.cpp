@@ -93,4 +93,6 @@ namespace {
 		EXPECT_EQ(homework.contains("ЛОП"), false);
 		EXPECT_EQ(homework.contains("ЭВМ"), false);
 	}
+
+	//добавить тестов на доп.задачи
 }
