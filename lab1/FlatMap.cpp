@@ -17,7 +17,7 @@ int FlatMap::binSearch(object arr[], int low, int high, std::string x) {
         }
     }
 
-    return (-1 * (low > high ? low : high) - 1);
+    return (-1 * low - 1);
 };
 
 void FlatMap::shift(object* place, int border, int index, std::string mode) { 
@@ -122,10 +122,18 @@ std::string& FlatMap::operator[](const std::string& key) {
 };
 
 bool FlatMap::contains(const std::string& key) {
+    if (count == 0) {
+        return false;
+    }
+
     return binSearch(map, 0, count - 1, key) < 0 ? false : true;
 };
 
 std::size_t FlatMap::erase(const std::string& key) { 
+    if (count == 0) {
+        return 0;
+    }
+    
     int id = binSearch(map, 0, count - 1, key);
 
     if (id < 0) {
@@ -176,4 +184,27 @@ FlatMap& FlatMap::operator=(FlatMap&& x) noexcept {
     swap(copy, *this);
 
     return *this;
+};
+
+FlatMap::object* FlatMap::begin() {
+    return map;
+};
+
+FlatMap::object* FlatMap::end() {
+    return map + count;
+};
+
+FlatMap::object* FlatMap::find(const std::string& x) {
+    if (count == 0) {
+        return map;
+    }
+
+    int id = binSearch(map, 0, count - 1, x);
+
+    if (id < 0) {
+        return map + count;
+    }
+    else {
+        return map + id;
+    }
 };

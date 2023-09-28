@@ -94,5 +94,4 @@ namespace {
 		EXPECT_EQ(homework.contains("Ё¬ћ"), false);
 	}
 
-	//добавить тестов на доп.задачи
 }
