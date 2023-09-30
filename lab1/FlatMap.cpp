@@ -1,7 +1,7 @@
 #include "FlatMap.h"
 #include <algorithm>
 
-int FlatMap::binSearch(object arr[], int low, int high, std::string x) { 
+int FlatMap::binSearch(object arr[], int low, int high, const std::string& x) { 
     while (low <= high) {
         int mid = low + (high - low) / 2;
 
@@ -20,7 +20,7 @@ int FlatMap::binSearch(object arr[], int low, int high, std::string x) {
     return (-1 * low - 1);
 };
 
-void FlatMap::shift(object* place, int border, int index, std::string mode) { 
+void FlatMap::shift(object* place, int border, int index, const std::string& mode) { 
     if (mode == "r") { 
         int end = border;
 
@@ -47,19 +47,14 @@ void swap(FlatMap& m1, FlatMap& m2) {
     swap(m1.count, m2.count);
 }
 
-FlatMap::FlatMap() {
+FlatMap::FlatMap() : capacity{ newCells }, count { 0 } {
     map = new object[newCells];
-    capacity = newCells;
-    count = 0;
 };
 
-FlatMap::FlatMap(const FlatMap& other_map) {
+FlatMap::FlatMap(const FlatMap& other_map) : capacity{ other_map.capacity }, count{ other_map.count } {
     map = new object[other_map.capacity];
 
     std::copy(other_map.map, other_map.map + other_map.count, map);
-
-    capacity = other_map.capacity;
-    count = other_map.count;
 };
 
 FlatMap::~FlatMap() {
@@ -82,41 +77,39 @@ std::size_t FlatMap::size() const {
 };
 
 std::string& FlatMap::operator[](const std::string& key) {
-    FlatMap copy(*this);
+    if (capacity == 0) {
+        map = new object[newCells];
+        capacity = newCells;
+    }
 
-    if (copy.count == 0) {
-        copy.map[0].key = key;
-        copy.count++;
-
-        swap(copy, *this);
+    if (count == 0) {
+        map[0].key = key;
+        count++;
 
         return map[0].value;
     }
 
-    if (copy.count == copy.capacity) {
-        object* altMap = new object[static_cast<std::size_t>(copy.capacity) + newCells];
-        std::copy(copy.map, copy.map + copy.count, altMap);
+    if (count == capacity) {
+        object* altMap = new object[static_cast<std::size_t>(capacity) + newCells];
 
-        delete[] copy.map;
+        std::copy(map, map + count, altMap);
 
-        copy.map = altMap;
-        copy.capacity += newCells;
+        delete[] map;
+
+        map = altMap;
+        capacity += newCells;
     };
 
-    int id = binSearch(copy.map, 0, copy.count - 1, key);
+    int id = binSearch(map, 0, count - 1, key);
 
     if (id < 0) {
         id = (id + 1) * -1;
 
-        if (copy.map[id].key != "") {
-            shift(copy.map, copy.count, id, "r");
-        }
+        shift(map, count, id, "r");
 
-        copy.map[id].key = key;
-        copy.count++;
+        map[id].key = key;
+        count++;
     }
-
-    swap(copy, *this);
 
     return map[id].value;
 };
@@ -126,7 +119,7 @@ bool FlatMap::contains(const std::string& key) {
         return false;
     }
 
-    return binSearch(map, 0, count - 1, key) < 0 ? false : true;
+    return binSearch(map, 0, count - 1, key) >= 0;
 };
 
 std::size_t FlatMap::erase(const std::string& key) { 
@@ -140,38 +133,28 @@ std::size_t FlatMap::erase(const std::string& key) {
         return 0;
     }
     else {
-        FlatMap copy(*this);
+        shift(map, count, id, "l");
 
-        if (id != copy.capacity - 1 && copy.map[id + 1].key != "") {
-            shift(copy.map, copy.count, id, "l");
-        }
-
-        copy.map[copy.count - 1].key = ""; 
-        copy.map[copy.count - 1].value = "";
-        copy.count--;
-
-        swap(copy, *this);
+        map[count - 1].key = ""; 
+        map[count - 1].value = "";
+        count--;
 
         return 1;
     }
 };
 
 void FlatMap::clear() { 
-    FlatMap copy(*this);
+    while (count > 0) { 
+        map[count - 1].key = "";
+        map[count - 1].value = "";
 
-    delete[] copy.map;
-    copy.map = new object[copy.capacity];
-    copy.count = 0;
-
-    swap(copy, *this);
+        count--;
+    }
 };
 
-FlatMap::FlatMap(FlatMap&& x) noexcept {
-    map = x.map;
-    capacity = x.capacity;
-    count = x.count;
-
+FlatMap::FlatMap(FlatMap&& x) noexcept : map{ x.map }, capacity{ x.capacity }, count{ x.count } {
     x.map = nullptr;
+    x.capacity = 0;
     x.count = 0;
 };
 

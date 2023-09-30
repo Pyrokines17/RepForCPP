@@ -15,8 +15,8 @@ class FlatMap {
     int capacity;
     int count;
 
-    int binSearch(object arr[], int low, int high, std::string x);
-    void shift(object* place, int border, int index, std::string mode);
+    int binSearch(object arr[], int low, int high, const std::string& x);
+    void shift(object* place, int border, int index, const std::string& mode);
 
     friend void swap(FlatMap& m1, FlatMap& m2);
 
