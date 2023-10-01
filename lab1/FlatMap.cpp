@@ -90,7 +90,7 @@ std::string& FlatMap::operator[](const std::string& key) {
     }
 
     if (count == capacity) {
-        object* altMap = new object[static_cast<std::size_t>(capacity) + newCells];
+        object* altMap = new object[capacity + newCells];
 
         std::copy(map, map + count, altMap);
 

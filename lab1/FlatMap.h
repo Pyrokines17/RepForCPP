@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#define newCells 4
+const int newCells = 4;
 
 class FlatMap {
     struct object {
