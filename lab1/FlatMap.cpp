@@ -78,8 +78,12 @@ std::size_t FlatMap::size() const {
 
 std::string& FlatMap::operator[](const std::string& key) {
     if (capacity == 0) {
-        map = new object[newCells];
-        capacity = newCells;
+        FlatMap copy(*this);
+
+        copy.map = new object[newCells];
+        copy.capacity = newCells;
+
+        swap(copy, *this);
     }
 
     if (count == 0) {
@@ -90,14 +94,17 @@ std::string& FlatMap::operator[](const std::string& key) {
     }
 
     if (count == capacity) {
-        object* altMap = new object[capacity + newCells];
+        FlatMap copy(*this);
 
-        std::copy(map, map + count, altMap);
+        object* altMap = new object[copy.capacity + newCells];
+        std::copy(copy.map, copy.map + copy.count, altMap);
 
-        delete[] map;
+        delete[] copy.map;
 
-        map = altMap;
-        capacity += newCells;
+        copy.map = altMap;
+        copy.capacity += newCells;
+
+        swap(copy, *this);
     };
 
     int id = binSearch(map, 0, count - 1, key);
