@@ -26,7 +26,7 @@ endif()
 
 # описываем основную библиотеку, т.е. библиотеку, содержащую все cpp-файлы, кроме main.cpp
 # TODO: отредактировать список cpp-файлов
-add_library(corelib OBJECT)
+add_library(corelib OBJECT SoundProcessor.cpp)
 
 # описываем исполняемый файл основной программы: это main.cpp + основная библиотека
 add_executable(${exe_name} Main.cpp)
@@ -47,6 +47,6 @@ FetchContent_MakeAvailable(googletest)
 
 # описываем исполняемый файл программы для запуска тестов: это cpp-файлы тестов + основная библиотека + библиотека gtest_main
 # наш собственный main.cpp здесь не нужен, т.к. функция main реализована в gtest_main
-add_executable(${test_name})
+add_executable(${test_name} SoundProcessorTests.cpp)
 target_link_libraries(${test_name} gtest_main)
 target_link_libraries(${test_name} corelib)
