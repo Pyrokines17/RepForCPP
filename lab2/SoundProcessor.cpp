@@ -1,64 +1,58 @@
-#include <iostream>
 #include <fstream>
 #include "SoundProcessor.h"
 
-baseChunk::baseChunk(FOURCC fourcc) :chunkId(fourcc) {
+soundProc::baseChunk::baseChunk(FOURCC fourcc) :chunkId(fourcc) {
     chunkSize = 0;
 };
 
-waveFormat::waveFormat() {
+soundProc::waveFormat::waveFormat() {
     formatTag = 1; // PCM format data
-    exSize = 0; // don't use extesion field
-
     channels = 0;
+
     samplePerSec = 0;
     bytesPerSec = 0;
+
     blockAlign = 0;
     bitsPerSample = 0;
 }
 
-waveFormat::waveFormat(uint16_t nbChannel, uint32_t sampleRate, uint16_t sampleBits) :channels(nbChannel), samplePerSec(sampleRate), bitsPerSample(sampleBits) {
-    formatTag = 0x01; // PCM format data
-    bytesPerSec = channels * samplePerSec * bitsPerSample / 8; // code rate
-    blockAlign = channels * bitsPerSample / 8;
-    exSize = 0; // don't use extension field
-};
-
-waveHeader::waveHeader() {
+soundProc::waveHeader::waveHeader() {
     riff = nullptr;
-    fmt = nullptr;
-
-    fmtData = nullptr;
-    data = nullptr;
-
     waveFcc = 0;
+
+    fmt_ = nullptr;
+    fmtData = nullptr;
+
+    data = nullptr;
 }
 
-waveHeader::waveHeader(uint16_t nbChannel, uint32_t sampleRate, uint16_t sampleBits) {
-    riff = std::make_shared<baseChunk>(MakeFOURCC<'R', 'I', 'F', 'F'>::value);
-    fmt = std::make_shared<baseChunk>(MakeFOURCC<'f', 'm', 't', ' '>::value);
-
-    fmt->chunkSize = 18;
-
-    fmtData = std::make_shared<waveFormat>(nbChannel, sampleRate, sampleBits);
-    data = std::make_shared<baseChunk>(MakeFOURCC<'d', 'a', 't', 'a'>::value);
-
-    waveFcc = MakeFOURCC<'W', 'A', 'V', 'E'>::value;
+soundProc::soundProc() {
+    header = new waveHeader;
 }
 
-void actions::write(waveHeader& header, unsigned int sec) {
-    uint32_t length = header.fmtData->samplePerSec * sec * header.fmtData->bitsPerSample / 8;
-    uint8_t* data = new uint8_t[length];
-    memset(data, 0x80, length);
-
-    //...
+soundProc::~soundProc() {
+    delete header;
 }
 
-int actions::read() {
-    std::unique_ptr<waveHeader> header = std::make_unique<waveHeader>();
+int soundProc::readHead(std::string& name) {
+    std::ifstream inStream(name, std::ios::in | std::ios::binary);
 
-    std::ifstream file("sth.wav", std::ios::in | std::ios::binary);
+    if (readRiff(inStream) == false) {
+        return false;
+    }
 
+    if (readFmt(inStream) == false) {
+        return false;
+    }
+
+    if (checkLorD(inStream) == false) {
+        return false;
+    }
+
+    return true;
+}
+
+int soundProc::readRiff(std::ifstream& file) {
     // Read RIFF chunk
 
     FOURCC fourcc = 0;
@@ -81,4 +75,95 @@ int actions::read() {
     }
 
     header->waveFcc = fourcc;
+
+    return true;
+}
+
+int soundProc::readFmt(std::ifstream& file) {
+    // Read fmt_ chunk
+
+    FOURCC fourcc = 0;
+    file.read((char*)&fourcc, sizeof(FOURCC));
+
+    if (fourcc != MakeFOURCC<'f', 'm', 't', ' '>::value) { // Determine if it is fmt_
+        return false;
+    }
+
+    baseChunk fmt_Chunk(fourcc);
+    file.read((char*)&fmt_Chunk.chunkSize, sizeof(uint32_t));
+    header->fmt_ = std::make_shared<baseChunk>(fmt_Chunk);
+
+    // Read fmt_ data
+
+    waveFormat fmt_data;
+    file.read((char*)&fmt_data.formatTag, sizeof(uint16_t));
+    file.read((char*)&fmt_data.channels, sizeof(uint16_t));
+
+    file.read((char*)&fmt_data.samplePerSec, sizeof(uint32_t));
+    file.read((char*)&fmt_data.bytesPerSec, sizeof(uint32_t));
+
+    file.read((char*)&fmt_data.blockAlign, sizeof(uint16_t));
+    file.read((char*)&fmt_data.bitsPerSample, sizeof(uint16_t));
+    header->fmtData = std::make_shared<waveFormat>(fmt_data);
+
+    return true;
+}
+
+int soundProc::checkLorD(std::ifstream& file) {
+    FOURCC fourcc = 0;
+    file.read((char*)&fourcc, sizeof(FOURCC));
+
+    if (fourcc == MakeFOURCC<'L', 'I', 'S', 'T'>::value) { // Determine if it is LIST
+        uint32_t exSize = 0;
+        file.read((char*)&exSize, sizeof(uint32_t));
+
+        uint32_t pos = static_cast<uint32_t>(file.tellg());
+        file.seekg(pos + exSize);
+
+        file.read((char*)&fourcc, sizeof(FOURCC));
+    }
+
+    if (fourcc == MakeFOURCC<'d', 'a', 't', 'a'>::value) { // Determine if it is data
+        baseChunk dataChunk(fourcc);
+        file.read((char*)&dataChunk.chunkSize, sizeof(uint32_t));
+        header->data = std::make_shared<baseChunk>(dataChunk);
+
+        return true;
+    }
+
+    return false;
+}
+
+void soundProc::writeHead(void) {
+    std::ofstream outStream("result.wav", std::ios::out | std::ios::binary);
+
+    writeRiff(outStream);
+    writeFmt(outStream);
+    writeData(outStream);
+}
+
+void soundProc::writeRiff(std::ofstream& file) {
+    file.write((const char*)&header->riff->chunkId, sizeof(FOURCC));
+    file.write((const char*)&header->riff->chunkSize, sizeof(uint32_t));
+
+    file.write((const char*)&header->waveFcc, sizeof(FOURCC));
+}
+
+void soundProc::writeFmt(std::ofstream& file) {
+    file.write((const char*)&header->fmt_->chunkId, sizeof(FOURCC));
+    file.write((const char*)&header->fmt_->chunkSize, sizeof(uint32_t));
+
+    file.write((const char*)&header->fmtData->formatTag, sizeof(uint16_t));
+    file.write((const char*)&header->fmtData->channels, sizeof(uint16_t));
+
+    file.write((const char*)&header->fmtData->samplePerSec, sizeof(uint32_t));
+    file.write((const char*)&header->fmtData->bytesPerSec, sizeof(uint32_t));
+
+    file.write((const char*)&header->fmtData->blockAlign, sizeof(uint16_t));
+    file.write((const char*)&header->fmtData->bitsPerSample, sizeof(uint16_t));
+}
+
+void soundProc::writeData(std::ofstream& file) {
+    file.write((const char*)&header->data->chunkId, sizeof(FOURCC));
+    file.write((const char*)&header->data->chunkSize, sizeof(uint32_t));
 }
