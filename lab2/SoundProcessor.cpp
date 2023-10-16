@@ -27,27 +27,24 @@ soundProc::waveHeader::waveHeader() {
 }
 
 soundProc::soundProc() {
-    header = new waveHeader;
-}
+    header = std::make_unique<waveHeader>();
 
-soundProc::~soundProc() {
-    delete header;
+    inStream = std::make_shared<std::ifstream>();
+    outStream = std::make_shared<std::ofstream>();
 }
 
 int soundProc::readHead(std::string& name) {
-    std::ifstream inStream(name, std::ios::in | std::ios::binary);
+    inStream->open(name, std::ios::in | std::ios::binary);
 
-    if (readRiff(inStream) == false) {
+    if (readRiff(*inStream) == false) {
         return false;
     }
 
-    if (readFmt(inStream) == false) {
+    if (readFmt(*inStream) == false) {
         return false;
     }
 
-    if (checkLorD(inStream) == false) {
-        return false;
-    }
+    readData(*inStream);
 
     return true;
 }
@@ -109,11 +106,11 @@ int soundProc::readFmt(std::ifstream& file) {
     return true;
 }
 
-int soundProc::checkLorD(std::ifstream& file) {
+void soundProc::readData(std::ifstream& file) {
     FOURCC fourcc = 0;
     file.read((char*)&fourcc, sizeof(FOURCC));
 
-    if (fourcc == MakeFOURCC<'L', 'I', 'S', 'T'>::value) { // Determine if it is LIST
+    while (fourcc != MakeFOURCC<'d', 'a', 't', 'a'>::value) { // Determine if it is not data
         uint32_t exSize = 0;
         file.read((char*)&exSize, sizeof(uint32_t));
 
@@ -123,23 +120,17 @@ int soundProc::checkLorD(std::ifstream& file) {
         file.read((char*)&fourcc, sizeof(FOURCC));
     }
 
-    if (fourcc == MakeFOURCC<'d', 'a', 't', 'a'>::value) { // Determine if it is data
-        baseChunk dataChunk(fourcc);
-        file.read((char*)&dataChunk.chunkSize, sizeof(uint32_t));
-        header->data = std::make_shared<baseChunk>(dataChunk);
-
-        return true;
-    }
-
-    return false;
+    baseChunk dataChunk(fourcc);
+    file.read((char*)&dataChunk.chunkSize, sizeof(uint32_t));
+    header->data = std::make_shared<baseChunk>(dataChunk);
 }
 
-void soundProc::writeHead(void) {
-    std::ofstream outStream("result.wav", std::ios::out | std::ios::binary);
+void soundProc::writeHead(std::string name) {
+    outStream->open(name, std::ios::out | std::ios::binary);
 
-    writeRiff(outStream);
-    writeFmt(outStream);
-    writeData(outStream);
+    writeRiff(*outStream);
+    writeFmt(*outStream);
+    writeData(*outStream);
 }
 
 void soundProc::writeRiff(std::ofstream& file) {
@@ -166,4 +157,84 @@ void soundProc::writeFmt(std::ofstream& file) {
 void soundProc::writeData(std::ofstream& file) {
     file.write((const char*)&header->data->chunkId, sizeof(FOURCC));
     file.write((const char*)&header->data->chunkSize, sizeof(uint32_t));
+}
+
+void soundProc::mute(int time) {
+    uint32_t position = 0;
+    int8_t byte = 0;
+
+    uint32_t sampleRate = header->fmtData->samplePerSec;
+    uint16_t bitsPerSample = header->fmtData->bitsPerSample;
+
+    uint32_t border = sampleRate * bitsPerSample * time / 8;
+
+    while (position < border) {
+        outStream->write((const char*)&byte, sizeof(int8_t));
+        position++;
+    }
+
+    uint32_t indicator = static_cast<uint32_t>(inStream->tellg());
+    inStream->seekg(indicator + border);
+
+    while (position < header->data->chunkSize) {
+        inStream->read((char*)&byte, sizeof(int8_t));
+        outStream->write((const char*)&byte, sizeof(int8_t));
+        position++;
+    }
+
+    inStream->seekg(indicator);
+}
+
+void soundProc::mix(soundProc& secondTrack) {
+    uint32_t position = 0;
+    int8_t byteOfFirst = 0;
+    int8_t byteOfSecond = 0;
+    int8_t result = 0;
+
+    uint32_t indicator1 = static_cast<uint32_t>(inStream->tellg());
+    uint32_t indicator2 = static_cast<uint32_t>(secondTrack.inStream->tellg());
+
+    while (position < header->data->chunkSize) {
+        inStream->read((char*)&byteOfFirst, sizeof(int8_t));
+        secondTrack.inStream->read((char*)&byteOfSecond, sizeof(int8_t));
+
+        result = (byteOfFirst + byteOfSecond) / 2;
+
+        outStream->write((const char*)&result, sizeof(int8_t));
+        position++;
+    }
+
+    inStream->seekg(indicator1);
+    secondTrack.inStream->seekg(indicator2);
+}
+
+void soundProc::mixAlt(soundProc& secondTrack) {
+    uint32_t position = 0;
+    int8_t byteOfFirst = 0;
+    int8_t byteOfSecond = 0;
+
+    uint32_t sampleRate = header->fmtData->samplePerSec;
+    uint16_t bitsPerSample = header->fmtData->bitsPerSample;
+
+    uint32_t border = sampleRate * bitsPerSample / 8;
+
+    uint32_t indicator1 = static_cast<uint32_t>(inStream->tellg());
+    uint32_t indicator2 = static_cast<uint32_t>(secondTrack.inStream->tellg());
+
+    while (position < header->data->chunkSize) {
+        for (uint32_t i = 0; i < border; i++) {
+            inStream->read((char*)&byteOfFirst, sizeof(int8_t));
+            outStream->write((const char*)&byteOfFirst, sizeof(int8_t));
+            position++;
+        }
+
+        for (uint32_t i = 0; i < border; i++) {
+            secondTrack.inStream->read((char*)&byteOfSecond, sizeof(int8_t));
+            outStream->write((const char*)&byteOfSecond, sizeof(int8_t));
+            position++;
+        }
+    }
+
+    inStream->seekg(indicator1);
+    secondTrack.inStream->seekg(indicator2);
 }

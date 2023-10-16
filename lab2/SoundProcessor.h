@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <memory>
 
-#define FOURCC uint32_t
+typedef uint32_t FOURCC;
 
 template <char ch0, char ch1, char ch2, char ch3> struct MakeFOURCC { enum { value = (ch0 << 0) + (ch1 << 8) + (ch2 << 16) + (ch3 << 24) }; };
 
@@ -39,11 +39,14 @@ class soundProc {
 		waveHeader();
 	};
 
-	waveHeader* header;
+	std::unique_ptr<waveHeader> header;
+
+	std::shared_ptr<std::ifstream> inStream;
+	std::shared_ptr<std::ofstream> outStream;
 
 	int readRiff(std::ifstream& file);
 	int readFmt(std::ifstream& file);
-	int checkLorD(std::ifstream& file); // check list or data
+	void readData(std::ifstream& file); // check List or Data
 
 	void writeRiff(std::ofstream& file);
 	void writeFmt(std::ofstream& file);
@@ -51,10 +54,13 @@ class soundProc {
 
 public:
 	soundProc();
-	~soundProc();
 
 	int readHead(std::string& name);
-	void writeHead(void);
+	void writeHead(std::string name);
+
+	void mute(int time);
+	void mix(soundProc&);
+	void mixAlt(soundProc&);
 
 };
 
