@@ -1,3 +1,3 @@
 #include <iostream>
 
-void printHelp(void);
+void printHelp();

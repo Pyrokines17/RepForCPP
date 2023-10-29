@@ -2,7 +2,7 @@
 
 Track::BaseChunk::BaseChunk(FOURCC fourcc) :chunkId(fourcc) {
     chunkSize = 0;
-};
+}
 
 Track::WaveFormat::WaveFormat() {
     formatTag = 1; // PCM format data
@@ -123,7 +123,7 @@ void Track::readData(std::ifstream& file) {
     header.data = std::make_shared<BaseChunk>(dataChunk);
 }
 
-void Track::writeHead(std::string name) {
+void Track::writeHead(const std::string& name) {
     outStream->open(name, std::ios::out | std::ios::binary);
 
     writeRiff(*outStream);
@@ -157,202 +157,14 @@ void Track::writeData(std::ofstream& file) {
     file.write(reinterpret_cast<const char*>(&header.data->chunkSize), sizeof(uint32_t));
 }
 
-void Track::mute(int begin, int end) {
-    uint32_t startIndicator = static_cast<uint32_t>(inStream->tellg());
-    uint32_t position = 0;
-    int8_t byte = 0;
-
-    uint32_t sampleRate = header.fmtData->samplePerSec;
-    uint16_t bitsPerSample = header.fmtData->bitsPerSample;
-
-    uint32_t beginBorder = sampleRate * bitsPerSample * begin / 8;
-    uint32_t endBorder = sampleRate * bitsPerSample * end / 8;
-
-    while (position < beginBorder) {
-        inStream->read(reinterpret_cast<char*>(&byte), sizeof(int8_t));
-        outStream->write(reinterpret_cast<const char*>(&byte), sizeof(int8_t));
-        position++;
-    }
-
-    byte = 0;
-
-    while (position < endBorder) {
-        outStream->write(reinterpret_cast<const char*>(&byte), sizeof(int8_t));
-        position++;
-    }
-
-    uint32_t indicator = static_cast<uint32_t>(inStream->tellg());
-    inStream->seekg(indicator + endBorder - beginBorder);
-
-    while (position < header.data->chunkSize) {
-        inStream->read(reinterpret_cast<char*>(&byte), sizeof(int8_t));
-        outStream->write(reinterpret_cast<const char*>(&byte), sizeof(int8_t));
-        position++;
-    }
-
-    inStream->seekg(startIndicator);
+Track::WaveHeader Track::getHeader() {
+    return header;
 }
 
-void Track::mix(Track& secondTrack, int begin) {
-    uint32_t indicator1 = static_cast<uint32_t>(inStream->tellg());
-    uint32_t indicator2 = static_cast<uint32_t>(secondTrack.inStream->tellg());
-    uint32_t position = 0;
-    int8_t byteOfFirst = 0;
-    int8_t byteOfSecond = 0;
-    int8_t result = 0;
-
-    uint32_t sampleRate = header.fmtData->samplePerSec;
-    uint16_t bitsPerSample = header.fmtData->bitsPerSample;
-
-    uint32_t startBorder = sampleRate * bitsPerSample * begin / 8;
-
-    while (position < startBorder) {
-        inStream->read(reinterpret_cast<char*>(&result), sizeof(int8_t));
-        outStream->write(reinterpret_cast<const char*>(&result), sizeof(int8_t));
-        position++;
-    }
-
-    while (position < header.data->chunkSize) {
-        inStream->read(reinterpret_cast<char*>(&byteOfFirst), sizeof(int8_t));
-        secondTrack.inStream->read(reinterpret_cast<char*>(&byteOfSecond), sizeof(int8_t));
-
-        result = (byteOfFirst + byteOfSecond) / 2;
-
-        outStream->write(reinterpret_cast<const char*>(&result), sizeof(int8_t));
-        position++;
-    }
-
-    inStream->seekg(indicator1);
-    secondTrack.inStream->seekg(indicator2);
+std::shared_ptr<std::ifstream> Track::getInStr() {
+    return inStream;
 }
 
-void Track::mixAlt(Track& secondTrack, int begin) {
-    uint32_t indicator1 = static_cast<uint32_t>(inStream->tellg());
-    uint32_t indicator2 = static_cast<uint32_t>(secondTrack.inStream->tellg());
-    uint32_t position = 0;
-    int8_t byte = 0;
-
-    uint32_t sampleRate = header.fmtData->samplePerSec;
-    uint16_t bitsPerSample = header.fmtData->bitsPerSample;
-
-    uint32_t borderOfSec = sampleRate * bitsPerSample / 8;
-    uint32_t startBorder = sampleRate * bitsPerSample * begin / 8;
-
-    while (position < startBorder) {
-        inStream->read(reinterpret_cast<char*>(&byte), sizeof(int8_t));
-        outStream->write(reinterpret_cast<const char*>(&byte), sizeof(int8_t));
-        position++;
-    }
-
-    while (position < header.data->chunkSize) {
-        for (uint32_t i = 0; i < borderOfSec; i++) {
-            inStream->read(reinterpret_cast<char*>(&byte), sizeof(int8_t));
-            outStream->write(reinterpret_cast<const char*>(&byte), sizeof(int8_t));
-            position++;
-        }
-
-        for (uint32_t i = 0; i < borderOfSec; i++) {
-            secondTrack.inStream->read(reinterpret_cast<char*>(&byte), sizeof(int8_t));
-            outStream->write(reinterpret_cast<const char*>(&byte), sizeof(int8_t));
-            position++;
-        }
-    }
-
-    inStream->seekg(indicator1);
-    secondTrack.inStream->seekg(indicator2);
-}
-
-void Track::slowed(int begin, int end, int degree) { //mb rerelease...
-    uint32_t indicator = static_cast<uint32_t>(inStream->tellg());
-    uint32_t position = 0;
-    int8_t byte = 0;
-
-    uint32_t sampleRate = header.fmtData->samplePerSec;
-    uint16_t bitsPerSample = header.fmtData->bitsPerSample;
-
-    uint32_t beginBorder = sampleRate * bitsPerSample * begin / 8;
-    uint32_t endBorder = sampleRate * bitsPerSample * end / 8;
-
-    while (position < beginBorder) {
-        inStream->read(reinterpret_cast<char*>(&byte), sizeof(int8_t));
-        outStream->write(reinterpret_cast<const char*>(&byte), sizeof(int8_t));
-        position++;
-    }
-
-    while (position < endBorder) {
-        inStream->read(reinterpret_cast<char*>(&byte), sizeof(int8_t));
-        byte /= static_cast<int8_t>(degree);
-
-        for (int i = 0; i < degree; i++) {
-            outStream->write(reinterpret_cast<const char*>(&byte), sizeof(int8_t));
-        }
-
-        position++;
-    }
-
-    while (position < header.data->chunkSize) {
-        inStream->read(reinterpret_cast<char*>(&byte), sizeof(int8_t));
-        outStream->write(reinterpret_cast<const char*>(&byte), sizeof(int8_t));
-        position++;
-    }
-
-    inStream->seekg(indicator);
-}
-
-void Track::reverb(int begin, int end, int degree) {
-    uint32_t indicator = static_cast<uint32_t>(inStream->tellg());
-    uint32_t position = 0;
-    int8_t byte = 0;
-    int8_t result = 0;
-
-    uint32_t sampleRate = header.fmtData->samplePerSec;
-    uint16_t bitsPerSample = header.fmtData->bitsPerSample;
-
-    uint32_t beginBorder = sampleRate * bitsPerSample * begin / 8;
-    uint32_t endBorder = sampleRate * bitsPerSample * end / 8;
-    uint32_t delay = delayMilliseconds * sampleRate * bitsPerSample / 8000;
-
-    while (position < beginBorder) {
-        inStream->read(reinterpret_cast<char*>(&byte), sizeof(int8_t));
-        outStream->write(reinterpret_cast<const char*>(&byte), sizeof(int8_t));
-        position++;
-    }
-
-    unsigned int i = 0;
-    float decay = 1.0f / degree;
-    int8_t* buffer = new int8_t[delay]; //mb to do read and write from one file
-
-    while (position < beginBorder + delay) {
-        inStream->read(reinterpret_cast<char*>(&byte), sizeof(int8_t));
-        buffer[i] = byte;
-        outStream->write(reinterpret_cast<const char*>(&byte), sizeof(int8_t));
-        position++;
-        i++;
-    }
-
-    i = 0;
-
-    while (position < endBorder) {
-        inStream->read(reinterpret_cast<char*>(&byte), sizeof(int8_t));
-        result = byte + static_cast<int8_t>(buffer[i] * decay);
-        buffer[i] = result;
-        outStream->write(reinterpret_cast<const char*>(&result), sizeof(int8_t));
-        position++;
-
-        if (i == delay - 1) {
-            i = 0;
-        }
-        else {
-            i++;
-        }
-    }
-
-    while (position < header.data->chunkSize) {
-        inStream->read(reinterpret_cast<char*>(&byte), sizeof(int8_t));
-        outStream->write(reinterpret_cast<const char*>(&byte), sizeof(int8_t));
-        position++;
-    }
-
-    delete[] buffer;
-    inStream->seekg(indicator);
+std::shared_ptr<std::ofstream> Track::getOutStr() {
+    return outStream;
 }

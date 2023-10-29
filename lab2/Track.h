@@ -12,7 +12,7 @@ class Track {
 		FOURCC chunkId;
 		uint32_t chunkSize;
 
-		BaseChunk(FOURCC fourcc);
+		explicit BaseChunk(FOURCC fourcc);
 	};
 
 	struct WaveFormat {
@@ -56,13 +56,11 @@ class Track {
 public:
 	Track();
 
-	int readHead(std::string& name); //mb to do separate file1
-	void writeHead(std::string name);
+	int readHead(std::string& name);
+	void writeHead(const std::string& name);
 
-	void mute(int begin, int end); //mb to do separate file2
-	void mix(Track& secondTrack, int begin);
-	void mixAlt(Track& secondTrack, int begin);
-	void slowed(int begin, int end, int degree);
-	void reverb(int begin, int end, int degree);
+    WaveHeader getHeader();
+    std::shared_ptr<std::ifstream> getInStr();
+    std::shared_ptr<std::ofstream> getOutStr();
 
 };

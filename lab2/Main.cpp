@@ -19,46 +19,56 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	Track* trackList = new Track[argc - 2];
+	auto tracklist = new Track[argc - 2];
 
 	for (int i = 1; i < argc - 1; i++) {
 		std::string soundName = argv[i];
-		trackList[i - 1].readHead(soundName);
+		tracklist[i - 1].readHead(soundName);
 	}
 
-	trackList[0].writeHead("result.wav");
+	tracklist[0].writeHead("result.wav");
 
 	std::string manualName = argv[argc - 1];
-	Manual* man = new Manual;
+	auto man = new Manual;
 	man->readMan(manualName);
 
 	int listSize = man->getSize();
-	std::vector<struct Manual::Converter> list = man->getVector();
 	
-	for (int i = 0; i < listSize; i++) { //mb to do fabric method
-		if (list[i].name == "mute") {
-			trackList[0].mute(list[i].parameters[0], list[i].parameters[1]);
+	for (int i = 0; i < listSize; i++) {
+        Converter* converter;
+        std::string name = man->getList()[i].name;
+        std::vector<int> parameters = man->getList()[i].parameters;
+
+		if (name == "mute") {
+            CallMute mute;
+            converter = mute.factoryMethod();
 		}
 
-		if (list[i].name == "mix") {
-			trackList[0].mix(trackList[list[i].parameters[0] - 1], list[i].parameters[1]);
-		}
+		if (name == "mix") {
+            CallMix mix;
+            converter = mix.factoryMethod();
+        }
 
-		if (list[i].name == "mixAlt") {
-			trackList[0].mixAlt(trackList[list[i].parameters[0] - 1], list[i].parameters[1]);
-		}
+		if (name == "mixAlt") {
+            CallMixAlt mixAlt;
+            converter = mixAlt.factoryMethod();
+        }
 
-		if (list[i].name == "slowed") {
-			trackList[0].slowed(list[i].parameters[0], list[i].parameters[1], list[i].parameters[2]);
-		}
+		if (name == "slowed") {
+            CallSlowed slowed;
+            converter = slowed.factoryMethod();
+        }
 
-		if (list[i].name == "reverb") {
-			trackList[0].slowed(list[i].parameters[0], list[i].parameters[1], list[i].parameters[2]);
-		}
+		if (name == "reverb") {
+            CallReverb reverb;
+            converter = reverb.factoryMethod();
+        }
+
+        converter->convert(tracklist, parameters);
 	}
 
 	delete man;
-	delete[] trackList;
+	delete[] tracklist;
 
-	return 0; //prikol s resultatom? vozmogno nugno chitat iz resultata
+	return 0;
 }
