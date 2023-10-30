@@ -35,13 +35,9 @@ void Mix::convert(std::vector<std::shared_ptr<std::ifstream>> inStreams, std::ve
     uint32_t startBorder = comSampleRate * static_cast<uint32_t>(parameters[1]);
     uint32_t finish = parameters[2] / 2;
 
-    auto a = outStream->tellp();
-
-    outStream->seekp(startWriteIndicator1 + startBorder * 2);
     inStream->seekg(startReadIndicator1 + startBorder * 2);
+    outStream->seekp(startWriteIndicator1 + startBorder * 2);
     uint32_t position = startBorder;
-
-    a = outStream->tellp();
 
     while (position < finish) {
         inStream->read(reinterpret_cast<char*>(&sampleOfFirst), sizeof(int16_t));
@@ -59,7 +55,7 @@ void Mix::convert(std::vector<std::shared_ptr<std::ifstream>> inStreams, std::ve
 }
 
 void MixAlt::convert(std::vector<std::shared_ptr<std::ifstream>> inStreams, std::vector<std::shared_ptr<std::fstream>> outStreams, const std::vector<int>& parameters) {
-    std::shared_ptr<std::ifstream> inStream = inStreams[0];
+    std::shared_ptr<std::ifstream> inStream = inStreams[2];
     uint32_t startReadIndicator1 = static_cast<uint32_t>(inStream->tellg());
     std::shared_ptr<std::fstream> outStream = outStreams[0];
     uint32_t startWriteIndicator1 = static_cast<uint32_t>(outStream->tellp());
@@ -96,7 +92,7 @@ void MixAlt::convert(std::vector<std::shared_ptr<std::ifstream>> inStreams, std:
 }
 
 void Slowed::convert(std::vector<std::shared_ptr<std::ifstream>> inStreams, std::vector<std::shared_ptr<std::fstream>> outStreams, const std::vector<int>& parameters) {
-    std::shared_ptr<std::ifstream> inStream = inStreams[0];
+    std::shared_ptr<std::ifstream> inStream = inStreams[1];
     uint32_t startReadIndicator = static_cast<uint32_t>(inStream->tellg());
     std::shared_ptr<std::fstream> outStream = outStreams[0];
     uint32_t startWriteIndicator = static_cast<uint32_t>(outStream->tellp());
@@ -150,48 +146,29 @@ void Reverb::convert(std::vector<std::shared_ptr<std::ifstream>> inStreams, std:
     std::shared_ptr<std::fstream> outStream = outStreams[0];
     uint32_t startWriteIndicator = static_cast<uint32_t>(outStream->tellp());
 
-    int16_t sample = 0;
+    int16_t firstSample = 0;
+    int16_t secondSample = 0;
     int16_t result = 0;
 
     uint32_t beginBorder = comSampleRate * static_cast<uint32_t>(parameters[0]);
     uint32_t endBorder = comSampleRate * static_cast<uint32_t>(parameters[1]);
 
-    uint32_t delay = delayMilliseconds / 1000 * comSampleRate;
+    uint32_t delay = delayMilliseconds * comSampleRate / 1000;
+    float decay = 1.0f / static_cast<float>(parameters[2]);
 
-    inStream->seekg(startReadIndicator + beginBorder * 2);
-    outStream->seekp(startWriteIndicator + beginBorder * 2);
+    outStream->seekp(startWriteIndicator + (beginBorder + delay) * 2);
     uint32_t position = beginBorder;
 
-    unsigned int i = 0;
-    float decay = 1.0f / static_cast<float>(parameters[2]);
-    auto* buffer = new int16_t[delay];
+    while (position < endBorder - delay) {
+        inStream->seekg(startReadIndicator + (position + delay) * 2);
+        inStream->read(reinterpret_cast<char*>(&firstSample), sizeof(int16_t));
+        inStream->seekg(startReadIndicator + position * 2);
+        inStream->read(reinterpret_cast<char*>(&secondSample), sizeof(int16_t));
 
-    while (position - beginBorder < delay) {
-        inStream->read(reinterpret_cast<char*>(&sample), sizeof(int16_t));
-        buffer[i] = sample;
-        outStream->write(reinterpret_cast<const char*>(&sample), sizeof(int16_t));
-        position++;
-        i++;
-    }
-
-    i = 0;
-
-    while (position < endBorder) {
-        inStream->read(reinterpret_cast<char*>(&sample), sizeof(int16_t));
-        result = static_cast<int16_t>(static_cast<float>(sample) + static_cast<float>(buffer[i]) * decay);
-        buffer[i] = result;
+        result = firstSample + static_cast<int16_t>(static_cast<float>(secondSample) * decay);
         outStream->write(reinterpret_cast<const char*>(&result), sizeof(int16_t));
         position++;
-
-        if (i == delay - 1) {
-            i = 0;
-        }
-        else {
-            i++;
-        }
     }
-
-    delete[] buffer;
 
     inStream->seekg(startReadIndicator);
     outStream->seekp(startWriteIndicator);

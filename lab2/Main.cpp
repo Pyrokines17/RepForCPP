@@ -29,10 +29,12 @@ int main(int argc, char* argv[]) {
 		tracklist.push_back(newTrack);
 	}
 
-	tracklist[0].writeHead("result.wav");
+	soundName = "result.wav";
+	tracklist[0].writeHead(soundName);
 	tracklist[0].copyData();
 
 	Track resTrack;
+	resTrack.readHead(soundName);
 
 	std::string manualName = argv[argc - 1];
 	Manual man;
@@ -43,7 +45,7 @@ int main(int argc, char* argv[]) {
 	std::vector<std::shared_ptr<std::ifstream>> inStreams;
 	std::vector<std::shared_ptr<std::fstream>> outStreams;
 
-	inStreams.push_back(tracklist[0].getInStr());
+	inStreams.push_back(resTrack.getInStr());
 	outStreams.push_back(tracklist[0].getOutStr());
 	
 	for (int i = 0; i < listSize; i++) {
@@ -58,20 +60,24 @@ int main(int argc, char* argv[]) {
 
 		if (name == "mix") {
             CallMix mix;
+			int idOfTrack = parameters[0] - 1;
 			parameters.push_back(tracklist[0].getFinish());
-			inStreams.push_back(tracklist[parameters[0] - 1].getInStr());
+			inStreams.push_back(tracklist[idOfTrack].getInStr());
             converter = mix.factoryMethod();
         }
 
 		if (name == "mixAlt") {
             CallMixAlt mixAlt;
+			int idOfTrack = parameters[0] - 1;
+			inStreams.push_back(tracklist[0].getInStr()); //origTrack
 			parameters.push_back(tracklist[0].getFinish());
-			inStreams.push_back(tracklist[parameters[0] - 1].getInStr());
+			inStreams.push_back(tracklist[idOfTrack].getInStr());
             converter = mixAlt.factoryMethod();
         }
 
 		if (name == "slowed") {
             CallSlowed slowed;
+			inStreams.push_back(tracklist[0].getInStr()); //origTrack
 			parameters.push_back(tracklist[0].getFinish());
             converter = slowed.factoryMethod();
         }
@@ -83,7 +89,7 @@ int main(int argc, char* argv[]) {
 
         converter->convert(inStreams, outStreams, parameters);
 
-		if (inStreams.size() > 1) {
+		while (inStreams.size() > 1) {
 			inStreams.erase(inStreams.end() - 1);
 		}
 	}
