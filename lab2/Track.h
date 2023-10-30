@@ -5,8 +5,6 @@ typedef uint32_t FOURCC;
 
 template <char ch0, char ch1, char ch2, char ch3> struct MakeFOURCC { enum { value = (ch0 << 0) + (ch1 << 8) + (ch2 << 16) + (ch3 << 24) }; };
 
-const int delayMilliseconds = 500;
-
 class Track {
 	struct BaseChunk {
 		FOURCC chunkId;
@@ -43,24 +41,25 @@ class Track {
 	WaveHeader header; 
 
 	std::shared_ptr<std::ifstream> inStream;
-	std::shared_ptr<std::ofstream> outStream;
+	std::shared_ptr<std::fstream> outStream;
 
-	int readRiff(std::ifstream& file);
+	void readRiff(std::ifstream& file);
 	void readFmt(std::ifstream& file);
 	void readData(std::ifstream& file);
 
-	void writeRiff(std::ofstream& file);
-	void writeFmt(std::ofstream& file);
-	void writeData(std::ofstream& file);
+	void writeRiff(std::fstream& file);
+	void writeFmt(std::fstream& file);
+	void writeData(std::fstream& file);
 
 public:
 	Track();
 
-	int readHead(std::string& name);
+	void readHead(std::string& name);
 	void writeHead(const std::string& name);
+	void copyData(void);
 
-    WaveHeader getHeader();
+	int getFinish();
     std::shared_ptr<std::ifstream> getInStr();
-    std::shared_ptr<std::ofstream> getOutStr();
+    std::shared_ptr<std::fstream> getOutStr();
 
 };

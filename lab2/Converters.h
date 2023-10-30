@@ -1,35 +1,39 @@
 #include <vector>
-#include "Track.h"
+#include <memory>
+#include <fstream>
+
+const uint32_t comSampleRate = 44100;
+const int delayMilliseconds = 500;
 
 class Converter {
 public:
-	virtual void convert(Track* tracklist, std::vector<int>& parameters) = 0;
+	virtual void convert(std::vector<std::shared_ptr<std::ifstream>> inStreams, std::vector<std::shared_ptr<std::fstream>> outStreams, const std::vector<int>& parameters) = 0;
 	virtual ~Converter() = default;
 };
 
 class Mute : public Converter {
 public:
-	void convert(Track* tracklist, std::vector<int>& parameters) override;
+	void convert(std::vector<std::shared_ptr<std::ifstream>> inStreams, std::vector<std::shared_ptr<std::fstream>> outStreams, const std::vector<int>& parameters) override;
 };
 
 class Mix : public Converter {
 public:
-	void convert(Track* tracklist, std::vector<int>& parameters) override;
+	void convert(std::vector<std::shared_ptr<std::ifstream>> inStreams, std::vector<std::shared_ptr<std::fstream>> outStreams, const std::vector<int>& parameters) override;
 };
 
 class MixAlt : public Converter {
 public:
-	void convert(Track* tracklist, std::vector<int>& parameters) override;
+	void convert(std::vector<std::shared_ptr<std::ifstream>> inStreams, std::vector<std::shared_ptr<std::fstream>> outStreams, const std::vector<int>& parameters) override;
 };
 
-class Slowed : public Converter { //(?)//
+class Slowed : public Converter {
 public:
-	void convert(Track* tracklist, std::vector<int>& parameters) override;
+	void convert(std::vector<std::shared_ptr<std::ifstream>> inStreams, std::vector<std::shared_ptr<std::fstream>> outStreams, const std::vector<int>& parameters) override;
 };
 
-class Reverb : public Converter { //(?)//
+class Reverb : public Converter { 
 public:
-	void convert(Track* tracklist, std::vector<int>& parameters) override;
+	void convert(std::vector<std::shared_ptr<std::ifstream>> inStreams, std::vector<std::shared_ptr<std::fstream>> outStreams, const std::vector<int>& parameters) override;
 };
 
 class Call {

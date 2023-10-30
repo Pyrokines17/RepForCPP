@@ -19,25 +19,37 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	auto tracklist = new Track[argc - 2];
+	std::vector<Track> tracklist;
+	std::string soundName = "";
 
 	for (int i = 1; i < argc - 1; i++) {
-		std::string soundName = argv[i];
-		tracklist[i - 1].readHead(soundName);
+		soundName = argv[i];
+		Track newTrack;
+		newTrack.readHead(soundName);
+		tracklist.push_back(newTrack);
 	}
 
 	tracklist[0].writeHead("result.wav");
+	tracklist[0].copyData();
+
+	Track resTrack;
 
 	std::string manualName = argv[argc - 1];
-	auto man = new Manual;
-	man->readMan(manualName);
+	Manual man;
+	man.readMan(manualName);
 
-	int listSize = man->getSize();
+	int listSize = man.getSize();
+
+	std::vector<std::shared_ptr<std::ifstream>> inStreams;
+	std::vector<std::shared_ptr<std::fstream>> outStreams;
+
+	inStreams.push_back(tracklist[0].getInStr());
+	outStreams.push_back(tracklist[0].getOutStr());
 	
 	for (int i = 0; i < listSize; i++) {
-        Converter* converter;
-        std::string name = man->getList()[i].name;
-        std::vector<int> parameters = man->getList()[i].parameters;
+        Converter* converter = nullptr;
+        std::string name = man.getList()[i].name;
+        std::vector<int> parameters = man.getList()[i].parameters;
 
 		if (name == "mute") {
             CallMute mute;
@@ -46,16 +58,21 @@ int main(int argc, char* argv[]) {
 
 		if (name == "mix") {
             CallMix mix;
+			parameters.push_back(tracklist[0].getFinish());
+			inStreams.push_back(tracklist[parameters[0] - 1].getInStr());
             converter = mix.factoryMethod();
         }
 
 		if (name == "mixAlt") {
             CallMixAlt mixAlt;
+			parameters.push_back(tracklist[0].getFinish());
+			inStreams.push_back(tracklist[parameters[0] - 1].getInStr());
             converter = mixAlt.factoryMethod();
         }
 
 		if (name == "slowed") {
             CallSlowed slowed;
+			parameters.push_back(tracklist[0].getFinish());
             converter = slowed.factoryMethod();
         }
 
@@ -64,11 +81,12 @@ int main(int argc, char* argv[]) {
             converter = reverb.factoryMethod();
         }
 
-        converter->convert(tracklist, parameters);
-	}
+        converter->convert(inStreams, outStreams, parameters);
 
-	delete man;
-	delete[] tracklist;
+		if (inStreams.size() > 1) {
+			inStreams.erase(inStreams.end() - 1);
+		}
+	}
 
 	return 0;
 }

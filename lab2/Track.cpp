@@ -1,23 +1,13 @@
 #include "Track.h"
 
-Track::BaseChunk::BaseChunk(FOURCC fourcc) :chunkId(fourcc) {
-    chunkSize = 0;
+Track::BaseChunk::BaseChunk(FOURCC fourcc) :chunkId(fourcc), chunkSize(0) {
 }
 
-Track::WaveFormat::WaveFormat() {
-    formatTag = 1; // PCM format data
-    channels = 0;
-
-    samplePerSec = 0;
-    bytesPerSec = 0;
-
-    blockAlign = 0;
-    bitsPerSample = 0;
+Track::WaveFormat::WaveFormat() :formatTag(1), channels(0), samplePerSec(0), bytesPerSec(0), blockAlign(0), bitsPerSample(0) {
 }
 
-Track::WaveHeader::WaveHeader() {
+Track::WaveHeader::WaveHeader() :waveFcc(0) {
     riff = nullptr;
-    waveFcc = 0;
 
     fmt_ = nullptr;
     fmtData = nullptr;
@@ -27,32 +17,22 @@ Track::WaveHeader::WaveHeader() {
 
 Track::Track() {
     inStream = std::make_shared<std::ifstream>();
-    outStream = std::make_shared<std::ofstream>();
+    outStream = std::make_shared<std::fstream>();
 }
 
-int Track::readHead(std::string& name) {
+void Track::readHead(std::string& name) {
     inStream->open(name, std::ios::in | std::ios::binary);
 
-    if (readRiff(*inStream) == false) {
-        return false;
-    }
-
+    readRiff(*inStream);
     readFmt(*inStream);
     readData(*inStream);
-
-    return true;
 }
 
-int Track::readRiff(std::ifstream& file) {
+void Track::readRiff(std::ifstream& file) {
     // Read RIFF chunk
 
     FOURCC fourcc = 0;
     file.read(reinterpret_cast<char*>(&fourcc), sizeof(FOURCC));
-
-    if (fourcc != MakeFOURCC<'R', 'I', 'F', 'F'>::value) { // Determine if it is RIFF
-        return false;
-    }
-
     BaseChunk riffChunk(fourcc);
     file.read(reinterpret_cast<char*>(&riffChunk.chunkSize), sizeof(uint32_t));
     header.riff = std::make_shared<BaseChunk>(riffChunk);
@@ -60,14 +40,7 @@ int Track::readRiff(std::ifstream& file) {
     // Read WAVE FOURCC
 
     file.read(reinterpret_cast<char*>(&fourcc), sizeof(FOURCC));
-
-    if (fourcc != MakeFOURCC<'W', 'A', 'V', 'E'>::value) {
-        return false;
-    }
-
     header.waveFcc = fourcc;
-
-    return true;
 }
 
 void Track::readFmt(std::ifstream& file) {
@@ -131,14 +104,30 @@ void Track::writeHead(const std::string& name) {
     writeData(*outStream);
 }
 
-void Track::writeRiff(std::ofstream& file) {
+void Track::copyData(void) {
+    uint32_t startReadIndicator = static_cast<uint32_t>(inStream->tellg());
+    uint32_t startWriteIndicator = static_cast<uint32_t>(outStream->tellp());
+    uint32_t position = 0;
+    int8_t byte = 0;
+
+    while (position < header.data->chunkSize) {
+        inStream->read(reinterpret_cast<char*>(&byte), sizeof(byte));
+        outStream->write(reinterpret_cast<const char*>(&byte), sizeof(byte));
+        position++;
+    }
+
+    inStream->seekg(startReadIndicator);
+    outStream->seekp(startWriteIndicator);
+}
+
+void Track::writeRiff(std::fstream& file) {
     file.write(reinterpret_cast<const char*>(&header.riff->chunkId), sizeof(FOURCC));
     file.write(reinterpret_cast<const char*>(&header.riff->chunkSize), sizeof(uint32_t));
 
     file.write(reinterpret_cast<const char*>(&header.waveFcc), sizeof(FOURCC));
 }
 
-void Track::writeFmt(std::ofstream& file) {
+void Track::writeFmt(std::fstream& file) {
     file.write(reinterpret_cast<const char*>(&header.fmt_->chunkId), sizeof(FOURCC));
     file.write(reinterpret_cast<const char*>(&header.fmt_->chunkSize), sizeof(uint32_t));
 
@@ -152,19 +141,19 @@ void Track::writeFmt(std::ofstream& file) {
     file.write(reinterpret_cast<const char*>(&header.fmtData->bitsPerSample), sizeof(uint16_t));
 }
 
-void Track::writeData(std::ofstream& file) {
+void Track::writeData(std::fstream& file) {
     file.write(reinterpret_cast<const char*>(&header.data->chunkId), sizeof(FOURCC));
     file.write(reinterpret_cast<const char*>(&header.data->chunkSize), sizeof(uint32_t));
 }
 
-Track::WaveHeader Track::getHeader() {
-    return header;
+int Track::getFinish() {
+    return header.data->chunkSize;
 }
 
 std::shared_ptr<std::ifstream> Track::getInStr() {
     return inStream;
 }
 
-std::shared_ptr<std::ofstream> Track::getOutStr() {
+std::shared_ptr<std::fstream> Track::getOutStr() {
     return outStream;
 }
