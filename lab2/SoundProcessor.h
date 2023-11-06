@@ -1,3 +1,4 @@
+#pragma once
 #include "Manual.h"
 #include "FuncOfMain.h"
 #include "Converters.h"

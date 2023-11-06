@@ -1,5 +1,7 @@
+#pragma once
 #include <fstream>
 #include <memory>
+#include "ListOfExcep.h"
 
 typedef uint32_t FOURCC;
 
@@ -56,7 +58,7 @@ public:
 
 	void readHead(std::string& name);
 	void writeHead(const std::string& name);
-	void copyData(void);
+	void copyData();
 
 	int getFinish();
     std::shared_ptr<std::ifstream> getInStr();

@@ -1,5 +1,7 @@
+#pragma once
 #include <string>
 #include <vector>
+#include "ListOfExcep.h"
 
 class Manual {
 	struct Converter {
