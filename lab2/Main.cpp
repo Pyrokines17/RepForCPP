@@ -110,47 +110,33 @@ int main(int argc, char* argv[]) {
 	std::vector<std::shared_ptr<std::fstream>> outStreams;
 
 	inStreams.push_back(resTrack.getInStr());
+    for (auto & i : tracklist) {
+        inStreams.push_back(i.getInStr());
+    }
+
 	outStreams.push_back(tracklist[0].getOutStr());
 	
 	for (int i = 0; i < listSize; i++) {
-        Converter* converter = nullptr;
+        Call* call;
+        Converter* converter;
         std::string name = man.getList()[i].name;
         std::vector<int> parameters = man.getList()[i].parameters;
+        parameters.push_back(tracklist[0].getFinish());
 
 		if (name == "mute") {
-            CallMute mute;
-            converter = mute.factoryMethod();
-		}
-
-		if (name == "mix") {
-            CallMix mix;
-			int idOfTrack = parameters[0] - 1;
-			parameters.push_back(tracklist[0].getFinish());
-			inStreams.push_back(tracklist[idOfTrack].getInStr());
-            converter = mix.factoryMethod();
-        }
-
-		if (name == "mixAlt") {
-            CallMixAlt mixAlt;
-			int idOfTrack = parameters[0] - 1;
-			parameters.push_back(tracklist[0].getFinish());
-			inStreams.push_back(tracklist[idOfTrack].getInStr());
-            converter = mixAlt.factoryMethod();
-        }
-
-		if (name == "slowed") {
-            CallSlowed slowed;
-			inStreams.push_back(tracklist[0].getInStr());
-			parameters.push_back(tracklist[0].getFinish());
-            converter = slowed.factoryMethod();
-        }
-
-		if (name == "reverb") {
-            CallReverb reverb;
-            converter = reverb.factoryMethod();
+            call = new CallMute;
+		} else if (name == "mix") {
+            call = new CallMix;
+        } else if (name == "mixAlt") {
+            call = new CallMixAlt;
+        } else if (name == "slowed") {
+            call = new CallSlowed;
+        } else if (name == "reverb") {
+            call = new CallReverb;
         }
 
         try {
+            converter = call->factoryMethod();
             converter->convert(inStreams, outStreams, parameters);
         } catch (const CanNotRead& e) {
             std::cerr << e.what() << "(in " << name << " )" << std::endl;
@@ -159,10 +145,6 @@ int main(int argc, char* argv[]) {
             std::cerr << e.what() << "(in " << name << " )" << std::endl;
             return 5;
         }
-
-		if (inStreams.size() > 1) {
-			inStreams.erase(inStreams.end() - 1);
-		}
 	}
 
 	return 0;

@@ -31,7 +31,7 @@ void Mix::convert(const std::vector<std::shared_ptr<std::ifstream>>& inStreams, 
     uint32_t startReadIndicator1 = static_cast<uint32_t>(inStream->tellg());
     const std::shared_ptr<std::fstream>& outStream = outStreams[0];
     uint32_t startWriteIndicator1 = static_cast<uint32_t>(outStream->tellp());
-    const std::shared_ptr<std::ifstream>& secInStream = inStreams[1];
+    const std::shared_ptr<std::ifstream>& secInStream = inStreams[parameters[0]];
     uint32_t startReadIndicator2 = static_cast<uint32_t>(secInStream->tellg());
 
     int16_t sampleOfFirst = 0;
@@ -69,7 +69,7 @@ void Mix::convert(const std::vector<std::shared_ptr<std::ifstream>>& inStreams, 
 void MixAlt::convert(const std::vector<std::shared_ptr<std::ifstream>>& inStreams, const std::vector<std::shared_ptr<std::fstream>>& outStreams, const std::vector<int>& parameters) {
     const std::shared_ptr<std::fstream>& outStream = outStreams[0];
     uint32_t startWriteIndicator1 = static_cast<uint32_t>(outStream->tellp());
-    const std::shared_ptr<std::ifstream>& secInStream = inStreams[1];
+    const std::shared_ptr<std::ifstream>& secInStream = inStreams[parameters[0]];
     uint32_t startReadIndicator2 = static_cast<uint32_t>(secInStream->tellg());
 
     int16_t sample = 0;
