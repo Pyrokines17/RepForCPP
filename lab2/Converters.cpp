@@ -1,6 +1,14 @@
 #include "Converters.h"
 
 void Mute::convert(const std::vector<std::shared_ptr<std::ifstream>>& inStreams, const std::vector<std::shared_ptr<std::fstream>>& outStreams, const std::vector<int>& parameters) {
+    if (parameters.size() < 3) {
+        throw IncorNumOfPar();
+    }
+
+    if (parameters[1] < parameters[0]) {
+        throw IncorBordOfPar();
+    }
+
     const std::shared_ptr<std::ifstream>& inStream = inStreams[0];
     uint32_t startReadIndicator = static_cast<uint32_t>(inStream->tellg());
     const std::shared_ptr<std::fstream>& outStream = outStreams[0];
@@ -27,6 +35,10 @@ void Mute::convert(const std::vector<std::shared_ptr<std::ifstream>>& inStreams,
 }
 
 void Mix::convert(const std::vector<std::shared_ptr<std::ifstream>>& inStreams, const std::vector<std::shared_ptr<std::fstream>>& outStreams, const std::vector<int>& parameters) {
+    if (parameters.size() < 3) {
+        throw IncorNumOfPar();
+    }
+
     const std::shared_ptr<std::ifstream>& inStream = inStreams[0];
     uint32_t startReadIndicator1 = static_cast<uint32_t>(inStream->tellg());
     const std::shared_ptr<std::fstream>& outStream = outStreams[0];
@@ -67,6 +79,10 @@ void Mix::convert(const std::vector<std::shared_ptr<std::ifstream>>& inStreams, 
 }
 
 void MixAlt::convert(const std::vector<std::shared_ptr<std::ifstream>>& inStreams, const std::vector<std::shared_ptr<std::fstream>>& outStreams, const std::vector<int>& parameters) {
+    if (parameters.size() < 3) {
+        throw IncorNumOfPar();
+    }
+
     const std::shared_ptr<std::fstream>& outStream = outStreams[0];
     uint32_t startWriteIndicator1 = static_cast<uint32_t>(outStream->tellp());
     const std::shared_ptr<std::ifstream>& secInStream = inStreams[parameters[0]];
@@ -101,6 +117,14 @@ void MixAlt::convert(const std::vector<std::shared_ptr<std::ifstream>>& inStream
 }
 
 void Slowed::convert(const std::vector<std::shared_ptr<std::ifstream>>& inStreams, const std::vector<std::shared_ptr<std::fstream>>& outStreams, const std::vector<int>& parameters) {
+    if (parameters.size() < 4) {
+        throw IncorNumOfPar();
+    }
+
+    if (parameters[1] < parameters[0]) {
+        throw IncorBordOfPar();
+    }
+
     const std::shared_ptr<std::ifstream>& inStream = inStreams[1];
     uint32_t startReadIndicator = static_cast<uint32_t>(inStream->tellg());
     const std::shared_ptr<std::fstream>& outStream = outStreams[0];
@@ -160,6 +184,14 @@ void Slowed::convert(const std::vector<std::shared_ptr<std::ifstream>>& inStream
 }
 
 void Reverb::convert(const std::vector<std::shared_ptr<std::ifstream>>& inStreams, const std::vector<std::shared_ptr<std::fstream>>& outStreams, const std::vector<int>& parameters) {
+    if (parameters.size() < 4) {
+        throw IncorNumOfPar();
+    }
+
+    if (parameters[1] < parameters[0]) {
+        throw IncorBordOfPar();
+    }
+
     const std::shared_ptr<std::ifstream>& inStream = inStreams[0];
     uint32_t startReadIndicator = static_cast<uint32_t>(inStream->tellg());
     const std::shared_ptr<std::fstream>& outStream = outStreams[0];

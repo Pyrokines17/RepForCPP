@@ -90,15 +90,6 @@ int main(int argc, char* argv[]) {
     } catch (const CritError& e) {
         std::cerr << e.what() << "(" << manualName << ")" << std::endl;
         return 7;
-    } catch (const ComNotFound& e) {
-        std::cerr << e.what() << "(" << manualName << ")" << std::endl;
-        return 9;
-    } catch (const IncorNumOfPar& e) {
-        std::cerr << e.what() << "(" << manualName << ")" << std::endl;
-        return 10;
-    } catch (const IncorBordOfPar& e) {
-        std::cerr << e.what() << "(" << manualName << ")" << std::endl;
-        return 11;
     } catch (const ErrorType& e) {
         std::cerr << e.what() << "(" << manualName << ")" << std::endl;
         return 12;
@@ -123,16 +114,23 @@ int main(int argc, char* argv[]) {
         std::vector<int> parameters = man.getList()[i].parameters;
         parameters.push_back(tracklist[0].getFinish());
 
-		if (name == "mute") {
-            call = new CallMute;
-		} else if (name == "mix") {
-            call = new CallMix;
-        } else if (name == "mixAlt") {
-            call = new CallMixAlt;
-        } else if (name == "slowed") {
-            call = new CallSlowed;
-        } else if (name == "reverb") {
-            call = new CallReverb;
+        try {
+            if (name == "mute") {
+                call = new CallMute;
+            } else if (name == "mix") {
+                call = new CallMix;
+            } else if (name == "mixAlt") {
+                call = new CallMixAlt;
+            } else if (name == "slowed") {
+                call = new CallSlowed;
+            } else if (name == "reverb") {
+                call = new CallReverb;
+            } else {
+                throw ComNotFound();
+            }
+        } catch (const ComNotFound& e) {
+            std::cerr << e.what() << "(" << name << ")" << std::endl;
+            return 9;
         }
 
         try {
@@ -144,6 +142,12 @@ int main(int argc, char* argv[]) {
         } catch (const CanNotWrite& e) {
             std::cerr << e.what() << "(in " << name << " )" << std::endl;
             return 5;
+        } catch (const IncorNumOfPar& e) {
+            std::cerr << e.what() << "(" << name << ")" << std::endl;
+            return 10;
+        } catch (const IncorBordOfPar& e) {
+            std::cerr << e.what() << "(" << name << ")" << std::endl;
+            return 11;
         }
 	}
 

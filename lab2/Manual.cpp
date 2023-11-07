@@ -37,35 +37,16 @@ void Manual::readMan(const std::string& name) {
         std::stringstream command(commandStr);
         command >> nameOfCom;
 
-        if (nameOfCom != "mute" && nameOfCom != "mix" && nameOfCom != "mixAlt" && nameOfCom != "slowed" && nameOfCom != "reverb") {
-            throw ComNotFound();
-        }
-
-        int num = 0,
-            count = 2;
+        int num = 0;
         Converter newConverter;
         newConverter.name = nameOfCom;
 
-        if (nameOfCom == "slowed" || nameOfCom == "reverb") {
-            count = 3;
-        }
-
-        for (int i = 0; i < count; i++) {
-            if (command.eof()) {
-                throw IncorNumOfPar();
-            }
-
+        while (!command.eof()) {
             if (!(command >> num)) {
                 throw ErrorType();
             }
 
             newConverter.parameters.push_back(num);
-        }
-
-        if (nameOfCom == "mute" || nameOfCom == "slowed" || nameOfCom == "reverb") {
-            if (newConverter.parameters[1] < newConverter.parameters[0]) {
-                throw IncorBordOfPar();
-            }
         }
 
         list.push_back(newConverter);
