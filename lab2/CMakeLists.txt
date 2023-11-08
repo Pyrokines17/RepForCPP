@@ -24,13 +24,12 @@ else()
 endif()
 
 # описываем основную библиотеку, т.е. библиотеку, содержащую все cpp-файлы, кроме main.cpp
-add_library(corelib OBJECT Track.cpp Manual.cpp FuncOfMain.cpp Converters.cpp)
+add_library(corelib OBJECT Track.cpp Manual.cpp Converters.cpp
+)
 
 # описываем исполняемый файл основной программы: это main.cpp + основная библиотека
 add_executable(${exe_name} Main.cpp)
 target_link_libraries(${exe_name} corelib)
-
-link_directories(libs)
 
 # ========== все, что ниже, относится к тестированию при помощи GoogleTest ==========
 

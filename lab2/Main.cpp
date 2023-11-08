@@ -10,6 +10,8 @@ int main(int argc, char* argv[]) {
 		std::string par = argv[1];
 
 		if (par == "-h") {
+            std::cout << "Give me firstly sounds of 'sth.wav' after that give me man.txt and i give you result.wav ;)" << std::endl;
+            std::cout << "List of actions:" << std::endl;
 			printHelp();
 			return 0;
 		}
@@ -108,33 +110,19 @@ int main(int argc, char* argv[]) {
 	outStreams.push_back(tracklist[0].getOutStr());
 	
 	for (int i = 0; i < listSize; i++) {
-        Call* call;
-        Converter* converter;
+        std::unique_ptr<Converter> converter;
         std::string name = man.getList()[i].name;
         std::vector<int> parameters = man.getList()[i].parameters;
         parameters.push_back(tracklist[0].getFinish());
 
         try {
-            if (name == "mute") {
-                call = new CallMute;
-            } else if (name == "mix") {
-                call = new CallMix;
-            } else if (name == "mixAlt") {
-                call = new CallMixAlt;
-            } else if (name == "slowed") {
-                call = new CallSlowed;
-            } else if (name == "reverb") {
-                call = new CallReverb;
-            } else {
-                throw ComNotFound();
-            }
+            converter = createConverter(name);
         } catch (const ComNotFound& e) {
             std::cerr << e.what() << "(" << name << ")" << std::endl;
             return 9;
         }
 
         try {
-            converter = call->factoryMethod();
             converter->convert(inStreams, outStreams, parameters);
         } catch (const CanNotRead& e) {
             std::cerr << e.what() << "(in " << name << " )" << std::endl;

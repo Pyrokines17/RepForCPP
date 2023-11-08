@@ -1,5 +1,33 @@
 #include "Converters.h"
 
+void printHelp() {
+    std::cout << "mute 'begin' 'end' -- mute from 'begin' to 'end';" << std::endl;
+    std::cout << "mix 'NumOfOtherTrack' 'begin' -- play main and 'otherTrack' from 'begin';" << std::endl;
+    std::cout << "mixAlt 'NumOfOtherTrack' 'begin' -- play second from main and second from 'otherTrack' from 'begin';" << std::endl;
+    std::cout << "slowed 'begin' 'end' 'degree' -- play sound slower by 'degree' times from 'begin' to 'end';" << std::endl;
+    std::cout << "reverb 'begin' 'end' 'degree' -- play sound bigger by 'degree' times from 'begin' to 'end'." << std::endl;
+}
+
+std::unique_ptr<Converter> createConverter(const std::string& name) {
+    Converter* converter;
+
+    if (name == "mute") {
+        converter = new Mute;
+    } else if (name == "mix") {
+        converter = new Mix;
+    } else if (name == "mixAlt") {
+        converter = new MixAlt;
+    } else if (name == "slowed") {
+        converter = new Slowed;
+    } else if (name == "reverb") {
+        converter = new Reverb;
+    } else {
+        throw ComNotFound();
+    }
+
+    return std::unique_ptr<Converter>(converter);
+}
+
 void Mute::convert(const std::vector<std::shared_ptr<std::ifstream>>& inStreams, const std::vector<std::shared_ptr<std::fstream>>& outStreams, const std::vector<int>& parameters) {
     if (parameters.size() < 3) {
         throw IncorNumOfPar();

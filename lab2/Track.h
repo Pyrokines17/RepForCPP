@@ -1,6 +1,8 @@
 #pragma once
+
 #include <fstream>
 #include <memory>
+
 #include "ListOfExcep.h"
 
 typedef uint32_t FOURCC;
@@ -18,10 +20,8 @@ class Track {
 	struct WaveFormat {
 		uint16_t formatTag; // WAVE data format (PCM data value is 1)
 		uint16_t channels; // number of channels
-
 		uint32_t samplePerSec; // sample rate
 		uint32_t bytesPerSec; // rate (channels * samplePerSec * bitsPerSample / 8)
-
 		uint16_t blockAlign; // audio data block
 		uint16_t bitsPerSample; // quantized bits
 
@@ -31,10 +31,8 @@ class Track {
 	struct WaveHeader {
 		std::shared_ptr<BaseChunk> riff;
 		FOURCC waveFcc;
-
 		std::shared_ptr<BaseChunk> fmt_;
 		std::shared_ptr<WaveFormat> fmtData;
-
 		std::shared_ptr<BaseChunk> data;
 
 		WaveHeader();

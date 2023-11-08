@@ -1,11 +1,16 @@
 #pragma once
+
 #include <vector>
 #include <memory>
 #include <fstream>
+#include <iostream>
+
 #include "ListOfExcep.h"
 
 const uint32_t comSampleRate = 44100;
 const int delayMilliseconds = 500;
+
+void printHelp();
 
 class Converter {
 public:
@@ -38,32 +43,4 @@ public:
 	void convert(const std::vector<std::shared_ptr<std::ifstream>>& inStreams, const std::vector<std::shared_ptr<std::fstream>>& outStreams, const std::vector<int>& parameters) override;
 };
 
-class Call {
-public:
-    virtual Converter* factoryMethod() = 0;
-};
-
-class CallMute: public Call {
-public:
-    Converter* factoryMethod() override {return new Mute();}
-};
-
-class CallMix: public Call {
-public:
-    Converter* factoryMethod() override {return new Mix();}
-};
-
-class CallMixAlt: public Call {
-public:
-    Converter* factoryMethod() override {return new MixAlt();}
-};
-
-class CallSlowed: public Call {
-public:
-    Converter* factoryMethod() override {return new Slowed();}
-};
-
-class CallReverb: public Call {
-public:
-    Converter* factoryMethod() override {return new Reverb();}
-};
+std::unique_ptr<Converter> createConverter(const std::string& name);
