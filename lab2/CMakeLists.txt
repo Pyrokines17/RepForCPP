@@ -4,7 +4,6 @@ cmake_minimum_required(VERSION 3.14)
 # задаем используемый стандарт С++
 set(CMAKE_CXX_STANDARD 17)
 
-# TODO: переименовать проект
 project(LabWork2)
 
 # задаем имя исполняемого файла основной программы
@@ -14,7 +13,7 @@ set(exe_name ${PROJECT_NAME})
 set(test_name test)
 
 # Включаем отслеживание всех предупреждений (warnings) и запрещаем компиляцию при наличии предупреждений.
-# Считается хорошим тоном, когда программа собирается без предупрреждений.
+# Считается хорошим тоном, когда программа собирается без предупреждений.
 # Но вы можете убрать /WX и -Werror (разрешив компиляцию с предупреждениями), если сможете разумно объяснить своё решение.
 if (MSVC)
     # warning level 4 and all warnings as errors
@@ -25,8 +24,8 @@ else()
 endif()
 
 # описываем основную библиотеку, т.е. библиотеку, содержащую все cpp-файлы, кроме main.cpp
-# TODO: отредактировать список cpp-файлов
-add_library(corelib OBJECT)
+add_library(corelib OBJECT Track.cpp Manual.cpp Converters.cpp
+)
 
 # описываем исполняемый файл основной программы: это main.cpp + основная библиотека
 add_executable(${exe_name} Main.cpp)
@@ -47,6 +46,6 @@ FetchContent_MakeAvailable(googletest)
 
 # описываем исполняемый файл программы для запуска тестов: это cpp-файлы тестов + основная библиотека + библиотека gtest_main
 # наш собственный main.cpp здесь не нужен, т.к. функция main реализована в gtest_main
-add_executable(${test_name})
+add_executable(${test_name} SoundProcessorTests.cpp)
 target_link_libraries(${test_name} gtest_main)
 target_link_libraries(${test_name} corelib)
