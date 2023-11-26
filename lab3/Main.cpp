@@ -8,44 +8,83 @@ int main() {
 
     if (has_colors() == FALSE) {
         endwin();
-        std::cerr << "Your terminal does not support color\n";
+        std::cerr << "Your terminal does not support color :( \n";
         exit(1);
     }
 
     std::vector<int> pairs;
     initPairs(pairs);
 
-    int h,
-        w;
-    getmaxyx(stdscr, h, w);
+    int height,
+        weight;
+    getmaxyx(stdscr, height, weight);
 
-    std::uniform_int_distribution<> dist1(1, h - 2);
-    std::uniform_int_distribution<> dist2(1, w - 2);
-    std::uniform_int_distribution<> dist3(1, 25);
+    std::uniform_int_distribution<> distH(1, height - 2);
+    std::uniform_int_distribution<> distW(1, weight - 2);
+    std::uniform_int_distribution<> distC(1, 25);
+    std::uniform_int_distribution<> distK(0, 1);
 
-    int count = dist3(gen);
-    int count1 = dist3(gen);
-    Map map(w, h, count, count1);
-    map.initPlayer();
+    int countOfEnemy = distC(gen);
+    int countOfBlock = distC(gen);
+    Map map(weight, height, countOfEnemy, countOfBlock);
+    std::vector<int> parameters = {0, 0, 0};
 
-    for (int i = 0; i < count; i++){
-        map.initEnemy(dist2(gen), dist1(gen), now(), w, h);
+    map.init(parameters, now(), '-', "player");
+    int score = 0;
+
+    for (int i = 0; i < countOfEnemy; i++) {
+        parameters[0] = distW(gen);
+        parameters[1] = distH(gen);
+        map.init(parameters, now(), '-', "enemy");
     }
 
-    for (int i = 0; i < count1; i++){
-        map.initBlock(dist2(gen), dist1(gen));
+    for (int i = 0; i < countOfBlock; i++) {
+        parameters[0] = distW(gen);
+        parameters[1] = distH(gen);
+        parameters[2] = distK(gen);
+        map.init(parameters, now(), '-', "block");
     }
 
-    int c;
+    int c,
+        res = 0;
+
+    while ('q' != (c = getch())) {
+        clear();
+        printFirstScr(height, weight);
+        refresh();
+    }
+
     while ('q' != (c = getch())) {
         clear();
         map.drawBorders();
-        map.printStat();
 
-        map.actObj(c);
+        map.actionOfObj(c);
         map.drawObj(pairs);
 
+        map.printStat(score);
+
+        res = map.countingOfRes(score);
+
+        if (res > 0) {
+            break;
+        }
+
         map.erase();
+        refresh();
+    }
+
+    const char* str;
+    if (res == 1) {
+        str = "You win! Your score: %d";
+    } else if (res == 2) {
+        str = "You lose... Your score: %d";
+    } else if (res == 0) {
+        str = "You leave :( Your score: %d";
+    }
+
+    while ('q' != (c = getch())) {
+        clear();
+        print(str, score, height / 2, weight);
         refresh();
     }
 

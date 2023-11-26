@@ -35,3 +35,26 @@ void out(int y, int x, const std::string& s) {
 steady_clock_t now() {
     return std::chrono::steady_clock::now();
 }
+
+void print(const char* name, int count, int level, int weight) {
+    size_t title_size = snprintf(nullptr, 0, name, count);
+    wmove(stdscr, level, (weight - static_cast<int>(title_size)) / 2);
+    wprintw(stdscr, name, count);
+}
+
+void printStr(const char* str, int level, int weight) {
+    size_t title_size = snprintf(nullptr, 0, "%s", str);
+    wmove(stdscr, level, (weight - static_cast<int>(title_size)) / 2);
+    wprintw(stdscr, "%s", str);
+}
+
+void printFirstScr(int height, int weight) {
+    const char* str = "{w, a, s, d} -- to move";
+    printStr(str, height / 2 + 2, weight);
+    const char* str1 = "{<, ^, >, v} -- to shoot";
+    printStr(str1, height / 2 + 1, weight);
+    const char* str2 = "q -- to quit, e -- to use";
+    printStr(str2, height / 2, weight);
+    const char* str3 = "[ -- to save, ] -- to load";
+    printStr(str3, height / 2 - 1, weight);
+}
