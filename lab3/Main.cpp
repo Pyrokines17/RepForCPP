@@ -19,6 +19,19 @@ int main() {
         weight;
     getmaxyx(stdscr, height, weight);
 
+    sf::SoundBuffer buf;
+
+    if (!buf.loadFromFile("data.wav")) {
+        endwin();
+        std::cerr << "unable to open the file." << std::endl;
+        exit(1);
+    }
+
+    sf::Sound sound;
+    sound.setBuffer(buf);
+    sound.play();
+    sound.setLoop(true);
+
     std::uniform_int_distribution<> distH(2, height - 3);
     std::uniform_int_distribution<> distW(2, weight - 3);
     std::uniform_int_distribution<> distC(1, 25);

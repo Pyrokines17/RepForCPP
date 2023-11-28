@@ -9,5 +9,6 @@
 #include <algorithm>
 #include <random>
 
+#include "SFML/Audio.hpp"
 #include "SupFuncs.h"
 #include "Objects.h"

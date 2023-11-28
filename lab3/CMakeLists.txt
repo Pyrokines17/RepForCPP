@@ -47,6 +47,10 @@ else()
     target_link_libraries(${exe_name} curses)
 endif()
 
+find_package(SFML 2.5 COMPONENTS system window graphics network audio REQUIRED)
+include_directories( ${SFML_INCLUDE_DIRS} )
+target_link_libraries(${exe_name}  sfml-system sfml-window sfml-graphics sfml-network sfml-audio)
+
 # ========== все, что ниже, относится к тестированию при помощи GoogleTest ==========
 
 # скачиваем библиотеку GoogleTest
