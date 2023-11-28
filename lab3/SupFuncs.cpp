@@ -11,14 +11,15 @@ void mainInit() {
 }
 
 void initPairs(std::vector<int>& pairs) {
-    // colors are COLOR_BLACK, COLOR_RED, COLOR_GREEN, COLOR_YELLOW, COLOR_BLUE, COLOR_MAGENTA, COLOR_CYAN, COLOR_WHITE
+    // colors are COLOR_BLACK, COLOR_RED, COLOR_GREEN, COLOR_YELLOW,
+    // COLOR_BLUE, COLOR_MAGENTA, COLOR_CYAN, COLOR_WHITE
     start_color();
-    const int main_color_pair = 1;
-    init_pair(main_color_pair, COLOR_WHITE, COLOR_BLUE);
-    pairs.push_back(main_color_pair);
-    const int player_color_pair = 2;
-    init_pair(player_color_pair, COLOR_WHITE, COLOR_RED);
+    const int player_color_pair = 1;
+    init_pair(player_color_pair, COLOR_BLUE, COLOR_BLACK);
     pairs.push_back(player_color_pair);
+    const int enemy_color_pair = 2;
+    init_pair(enemy_color_pair, COLOR_RED, COLOR_BLACK);
+    pairs.push_back(enemy_color_pair);
     const int bullet_color_pair = 3;
     init_pair(bullet_color_pair, COLOR_RED, COLOR_BLACK);
     pairs.push_back(bullet_color_pair);

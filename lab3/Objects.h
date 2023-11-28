@@ -13,15 +13,15 @@ public:
     virtual void HPChange(int count) = 0;
 
     virtual char action(int c, const std::vector<GameObject*>& objects) = 0;
-    virtual void draw(const std::vector<int>& pairs) = 0;
+    virtual void draw(const std::vector<int>& pairs, int c) = 0;
 
     ~GameObject() = default;
 };
 
 class Bullet : public GameObject {
     int weight,
-        height,
-        healthPoints,
+        height;
+    int healthPoints,
         gamePoints;
     steady_clock_t last_time;
     char direction;
@@ -37,16 +37,19 @@ public:
     void HPChange(int count) override {healthPoints += count;};
 
     char action(int c, const std::vector<GameObject*>& objects) override;
-    void draw(const std::vector<int>& pairs) override;
+    void draw(const std::vector<int>& pairs, int c) override;
 };
 
 class Player : public GameObject {
     int weight,
-        height,
-        healthPoints,
-        gamePoints,
-        weightOfBorder,
+        height;
+    int healthPoints,
+        gamePoints;
+    int weightOfBorder,
         heightOfBorder;
+    int anim;
+    std::vector<std::string> body;
+    std::vector<std::string> parts;
 
     static int checkStep(const std::vector<GameObject*>& objects, int futWeight, int futHeight);
 
@@ -61,17 +64,20 @@ public:
     void HPChange(int count) override {healthPoints += count;};
 
     char action(int c, const std::vector<GameObject*>& objects) override;
-    void draw(const std::vector<int>& pairs) override;
+    void draw(const std::vector<int>& pairs, int c) override;
 };
 
 class Enemy : public GameObject {
     int weight,
-        height,
-        healthPoints,
-        gamePoints,
-        weightOfBorder,
+        height;
+    int healthPoints,
+        gamePoints;
+    int weightOfBorder,
         heightOfBorder;
+    int anim;
     steady_clock_t last_time;
+    std::vector<std::string> body;
+    std::vector<std::string> parts;
 
     static int checkStep(const std::vector<GameObject*>& objects, int weight, int height);
 
@@ -86,13 +92,13 @@ public:
     void HPChange(int count) override {healthPoints += count;};
 
     char action(int c, const std::vector<GameObject*>& objects) override;
-    void draw(const std::vector<int>& pairs) override;
+    void draw(const std::vector<int>& pairs, int c) override;
 };
 
 class Block : public GameObject {
     int weight,
-        height,
-        healthPoints,
+        height;
+    int healthPoints,
         gamePoints,
         kit;
 
@@ -107,13 +113,13 @@ public:
     void HPChange(int count) override {healthPoints += count;};
 
     char action(int c, const std::vector<GameObject*>& objects) override;
-    void draw(const std::vector<int>& pairs) override;
+    void draw(const std::vector<int>& pairs, int c) override;
 };
 
 class Map {
     int weight,
-        height,
-        countOfEnemy;
+        height;
+    int countOfEnemy;
     [[maybe_unused]] int countOfBlock;
     std::vector<GameObject*> objects;
 
@@ -124,7 +130,7 @@ public:
     void printStat(int score) const;
 
     void actionOfObj(int c);
-    void drawObj(const std::vector<int>& pairs);
+    void drawObj(const std::vector<int>& pairs, int c);
 
     void init(const std::vector<int>& parameters, steady_clock_t last_time, char direction, const std::string& name);
 

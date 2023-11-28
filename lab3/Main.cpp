@@ -19,8 +19,8 @@ int main() {
         weight;
     getmaxyx(stdscr, height, weight);
 
-    std::uniform_int_distribution<> distH(1, height - 2);
-    std::uniform_int_distribution<> distW(1, weight - 2);
+    std::uniform_int_distribution<> distH(2, height - 3);
+    std::uniform_int_distribution<> distW(2, weight - 3);
     std::uniform_int_distribution<> distC(1, 25);
     std::uniform_int_distribution<> distK(0, 1);
 
@@ -45,21 +45,26 @@ int main() {
         map.init(parameters, now(), '-', "block");
     }
 
-    int c,
-        res = 0;
+    std::ofstream out;
+    out.open("table.txt");
+    std::ifstream in;
+    in.open("table.txt");
 
-    while ('q' != (c = getch())) {
+    char b;
+    while ('q' != (b = getch())) {
         clear();
         printFirstScr(height, weight);
         refresh();
     }
 
+    int c,
+        res = 0;
     while ('q' != (c = getch())) {
         clear();
         map.drawBorders();
 
         map.actionOfObj(c);
-        map.drawObj(pairs);
+        map.drawObj(pairs, c);
 
         map.printStat(score);
 

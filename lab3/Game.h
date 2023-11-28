@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <fstream>
 #include <cstdio>
 #include <curses.h>
 #include <chrono>
