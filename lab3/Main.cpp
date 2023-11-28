@@ -45,23 +45,34 @@ int main() {
         map.init(parameters, now(), '-', "block");
     }
 
-    std::ofstream out;
-    out.open("table.txt");
-    std::ifstream in;
-    in.open("table.txt");
+    std::ofstream ofile;
+    ofile.open("table.txt", std::ios::app);
+    std::string strN;
 
-    char b;
-    while ('q' != (b = getch())) {
+    int b;
+    while ('\n' != (b = getch())) {
         clear();
+        if (b >= 'A' and b <= 'z') {
+            strN.push_back(static_cast<char>(b));
+        } else if (b == KEY_BACKSPACE) {
+            strN.erase(strN.end() - 1);
+        }
+        out(height / 3, weight / 2, strN);
         printFirstScr(height, weight);
         refresh();
     }
 
+    ofile << strN << ":";
+
     int c,
         res = 0;
     while ('q' != (c = getch())) {
+        std::ifstream ifile;
+        ifile.open("table.txt", std::ios::binary);
+
         clear();
         map.drawBorders();
+        Map::drawTable(ifile);
 
         map.actionOfObj(c);
         map.drawObj(pairs, c);
@@ -76,7 +87,10 @@ int main() {
 
         map.erase();
         refresh();
+        ifile.close();
     }
+
+    ofile << score << std::endl;
 
     const char* str;
     if (res == 1) {

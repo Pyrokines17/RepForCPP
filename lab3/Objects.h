@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <fstream>
 #include "SupFuncs.h"
 
 class GameObject {
@@ -128,6 +129,7 @@ public:
 
     void drawBorders() const;
     void printStat(int score) const;
+    static void drawTable(std::ifstream& ifile);
 
     void actionOfObj(int c);
     void drawObj(const std::vector<int>& pairs, int c);

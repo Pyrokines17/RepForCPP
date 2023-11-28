@@ -31,7 +31,7 @@ void Bullet::draw(const std::vector<int>& pairs, int c) {
     static_cast<void>(c);
     attron(COLOR_PAIR(pairs[2]));
 
-    if ((now() - last_time) / 1ms > 250) {
+    if ((now() - last_time) / 1ms > 225) {
         if (direction == 'w') {
             height--;
         } else if (direction == 's') {
@@ -297,6 +297,15 @@ void Map::printStat(int score) const {
     print(str1, countOfEnemy, 2, weight);
     const char* str2 = "Score: %d";
     print(str2, score, 3, weight);
+}
+
+void Map::drawTable(std::ifstream& ifile) {
+    std::string str;
+    int count = 0;
+    while (std::getline(ifile, str)) {
+        out(count + 1, 1, str);
+        count++;
+    }
 }
 
 void Map::actionOfObj(int c) {
