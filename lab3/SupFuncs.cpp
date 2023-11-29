@@ -13,6 +13,7 @@ void mainInit() {
 void initPairs(std::vector<int>& pairs) {
     // colors are COLOR_BLACK, COLOR_RED, COLOR_GREEN, COLOR_YELLOW,
     // COLOR_BLUE, COLOR_MAGENTA, COLOR_CYAN, COLOR_WHITE
+
     start_color();
     const int player_color_pair = 1;
     init_pair(player_color_pair, COLOR_BLUE, COLOR_BLACK);

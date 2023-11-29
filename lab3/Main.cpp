@@ -1,6 +1,6 @@
 #include "Game.h"
 
-int main() {
+int main() { //ToDo exceptions and rooms
     mainInit();
 
     std::random_device rd;
@@ -8,7 +8,7 @@ int main() {
 
     if (has_colors() == FALSE) {
         endwin();
-        std::cerr << "Your terminal does not support color :( \n";
+        std::cerr << "Your terminal does not support color :(" << std::endl;
         exit(1);
     }
 
@@ -23,7 +23,7 @@ int main() {
 
     if (!buf.loadFromFile("data.wav")) {
         endwin();
-        std::cerr << "unable to open the file." << std::endl;
+        std::cerr << "Unable to open the file :(" << std::endl;
         exit(1);
     }
 
@@ -43,7 +43,6 @@ int main() {
     std::vector<int> parameters = {0, 0, 0};
 
     map.init(parameters, now(), '-', "player");
-    int score = 0;
 
     for (int i = 0; i < countOfEnemy; i++) {
         parameters[0] = distW(gen);
@@ -65,11 +64,13 @@ int main() {
     int b;
     while ('\n' != (b = getch())) {
         clear();
+
         if (b >= 'A' and b <= 'z') {
             strN.push_back(static_cast<char>(b));
-        } else if (b == KEY_BACKSPACE) {
+        } else if (b == KEY_BACKSPACE and !strN.empty()) {
             strN.erase(strN.end() - 1);
         }
+
         out(height / 3, weight / 2, strN);
         printFirstScr(height, weight);
         refresh();
@@ -78,20 +79,32 @@ int main() {
     ofile << strN << ":";
 
     int c,
-        res = 0;
+        res = 0,
+        score = 0;
     while ('q' != (c = getch())) {
         std::ifstream ifile;
         ifile.open("table.txt", std::ios::binary);
+
+        if (!ifile.is_open()) {
+            endwin();
+            std::cerr << "File not open :(" << std::endl;
+            exit(1);
+        }
 
         clear();
         map.drawBorders();
         Map::drawTable(ifile);
 
+        if (c == '[') {
+            map.save();
+        } else if (c == ']') {
+            map.load();
+        }
+
         map.actionOfObj(c);
         map.drawObj(pairs, c);
 
-        map.printStat(score);
-
+        map.printStat();
         res = map.countingOfRes(score);
 
         if (res > 0) {
@@ -114,7 +127,7 @@ int main() {
         str = "You leave :( Your score: %d";
     }
 
-    while ('q' != (c = getch())) {
+    while ('\n' != (c = getch())) {
         clear();
         print(str, score, height / 2, weight);
         refresh();

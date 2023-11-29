@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <fstream>
+#include <sstream>
+
 #include "SupFuncs.h"
 
 class GameObject {
@@ -10,6 +12,8 @@ public:
     virtual int getH() = 0;
     virtual int getHP() = 0;
     virtual int getGP() = 0;
+    virtual char getDir() = 0;
+    virtual int getKit() = 0;
 
     virtual void HPChange(int count) = 0;
 
@@ -34,6 +38,8 @@ public:
     int getH() override {return height;};
     int getHP() override {return healthPoints;};
     int getGP() override {return gamePoints;};
+    char getDir() override {return direction;};
+    int getKit() override {return 0;};
 
     void HPChange(int count) override {healthPoints += count;};
 
@@ -41,7 +47,7 @@ public:
     void draw(const std::vector<int>& pairs, int c) override;
 };
 
-class Player : public GameObject {
+class Player : public GameObject { //ToDo altFire();
     int weight,
         height;
     int healthPoints,
@@ -55,61 +61,14 @@ class Player : public GameObject {
     static int checkStep(const std::vector<GameObject*>& objects, int futWeight, int futHeight);
 
 public:
-    Player(int weight, int height, int weightOfBorder, int heightOfBorder);
+    Player(int weight, int height, int hp, int weightOfBorder, int heightOfBorder);
 
     int getW() override {return weight;};
     int getH() override {return height;};
     int getHP() override {return healthPoints;};
     int getGP() override {return gamePoints;};
-
-    void HPChange(int count) override {healthPoints += count;};
-
-    char action(int c, const std::vector<GameObject*>& objects) override;
-    void draw(const std::vector<int>& pairs, int c) override;
-};
-
-class Enemy : public GameObject {
-    int weight,
-        height;
-    int healthPoints,
-        gamePoints;
-    int weightOfBorder,
-        heightOfBorder;
-    int anim;
-    steady_clock_t last_time;
-    std::vector<std::string> body;
-    std::vector<std::string> parts;
-
-    static int checkStep(const std::vector<GameObject*>& objects, int weight, int height);
-
-public:
-    Enemy(int weight, int health, steady_clock_t last_time, int weightOfBorder, int heightOfBorder);
-
-    int getW() override {return weight;};
-    int getH() override {return height;};
-    int getHP() override {return healthPoints;};
-    int getGP() override {return gamePoints;};
-
-    void HPChange(int count) override {healthPoints += count;};
-
-    char action(int c, const std::vector<GameObject*>& objects) override;
-    void draw(const std::vector<int>& pairs, int c) override;
-};
-
-class Block : public GameObject {
-    int weight,
-        height;
-    int healthPoints,
-        gamePoints,
-        kit;
-
-public:
-    Block(int weight, int height, int kit);
-
-    int getW() override {return weight;};
-    int getH() override {return height;};
-    int getHP() override {return healthPoints;};
-    int getGP() override {return gamePoints;};
+    char getDir() override {return 0;};
+    int getKit() override {return 0;};
 
     void HPChange(int count) override {healthPoints += count;};
 
@@ -122,13 +81,17 @@ class Map {
         height;
     int countOfEnemy;
     [[maybe_unused]] int countOfBlock;
+    int gamePoints;
     std::vector<GameObject*> objects;
 
 public:
     Map(int weight, int height, int countOfEnemy, int countOfBlock);
 
+    void save() const;
+    void load();
+
     void drawBorders() const;
-    void printStat(int score) const;
+    void printStat() const;
     static void drawTable(std::ifstream& ifile);
 
     void actionOfObj(int c);
