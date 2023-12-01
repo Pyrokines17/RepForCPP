@@ -34,7 +34,7 @@ int main() { //ToDo exceptions and rooms
 
     std::uniform_int_distribution<> distH(2, height - 3);
     std::uniform_int_distribution<> distW(2, weight - 3);
-    std::uniform_int_distribution<> distC(1, 25);
+    std::uniform_int_distribution<> distC(10, 20);
     std::uniform_int_distribution<> distK(0, 1);
 
     int countOfEnemy = distC(gen);
@@ -50,11 +50,24 @@ int main() { //ToDo exceptions and rooms
         map.init(parameters, now(), '-', "enemy");
     }
 
-    for (int i = 0; i < countOfBlock; i++) {
+    for (int i = 0; i < countOfEnemy / 2; i++) {
+        parameters[0] = distW(gen);
+        parameters[1] = distH(gen);
+        map.init(parameters, now(), '-', "altEnemy");
+    }
+
+    for (int i = 0; i < countOfBlock / 2; i++) {
         parameters[0] = distW(gen);
         parameters[1] = distH(gen);
         parameters[2] = distK(gen);
         map.init(parameters, now(), '-', "block");
+    }
+
+    for (int i = 0; i < countOfBlock; i++) {
+        parameters[0] = distW(gen);
+        parameters[1] = distH(gen);
+        parameters[2] = distK(gen);
+        map.init(parameters, now(), '-', "altBlock");
     }
 
     std::ofstream ofile;
@@ -64,6 +77,7 @@ int main() { //ToDo exceptions and rooms
     int b;
     while ('\n' != (b = getch())) {
         clear();
+        map.drawBorders();
 
         if (b >= 'A' and b <= 'z') {
             strN.push_back(static_cast<char>(b));
@@ -86,6 +100,7 @@ int main() { //ToDo exceptions and rooms
         ifile.open("table.txt", std::ios::binary);
 
         if (!ifile.is_open()) {
+            refresh();
             endwin();
             std::cerr << "File not open :(" << std::endl;
             exit(1);
@@ -93,7 +108,6 @@ int main() { //ToDo exceptions and rooms
 
         clear();
         map.drawBorders();
-        Map::drawTable(ifile);
 
         if (c == '[') {
             map.save();
@@ -105,6 +119,7 @@ int main() { //ToDo exceptions and rooms
         map.drawObj(pairs, c);
 
         map.printStat();
+        Map::drawTable(ifile);
         res = map.countingOfRes(score);
 
         if (res > 0) {
@@ -119,16 +134,16 @@ int main() { //ToDo exceptions and rooms
     ofile << score << std::endl;
 
     const char* str;
-    if (res == 1) {
-        str = "You win! Your score: %d";
-    } else if (res == 2) {
-        str = "You lose... Your score: %d";
-    } else if (res == 0) {
-        str = "You leave :( Your score: %d";
+    switch (res) {
+        case 0: str = "You leave :( Your score: %d"; break;
+        case 1: str = "You win! Your score: %d"; break;
+        case 2: str = "You lose... Your score: %d"; break;
+        default: ;
     }
 
     while ('\n' != (c = getch())) {
         clear();
+        map.drawBorders();
         print(str, score, height / 2, weight);
         refresh();
     }

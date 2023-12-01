@@ -2,9 +2,12 @@
 #include "Enemys.h"
 #include "Blocks.h"
 
+GameObject::GameObject(int weight, int height, int healthPoints, int gamePoints) :
+weight(weight), height(height), healthPoints(healthPoints), gamePoints(gamePoints) {
+}
+
 Bullet::Bullet(int weight, int height, steady_clock_t last_time, char direction) :
-weight(weight), height(height), healthPoints(1), gamePoints(0),
-last_time(last_time), direction(direction) {
+GameObject(weight, height, 1, 0), last_time(last_time), direction(direction) {
 }
 
 char Bullet::action(int c, const std::vector<GameObject*>& objects) {
@@ -33,15 +36,16 @@ void Bullet::draw(const std::vector<int>& pairs, int c) {
     static_cast<void>(c);
     attron(COLOR_PAIR(pairs[2]));
 
-    if ((now() - last_time) / 1ms > 225) {
-        if (direction == 'w') {
-            height--;
-        } else if (direction == 's') {
-            height++;
-        } else if (direction == 'd') {
-            weight++;
-        } else if (direction == 'a') {
-            weight--;
+    if ((now() - last_time) / 1ms > 150) {
+        switch (direction) {
+            case 'w': height--; break;
+            case 's': height++; break;
+            case 'a': weight--; break;
+            case 'd': weight++; break;
+            case '1': weight--; height++; break;
+            case '3': weight++; height++; break;
+            case '7': weight--; height--; break;
+            case '9': weight++; height--; break;
         }
         last_time = now();
     }
@@ -51,8 +55,7 @@ void Bullet::draw(const std::vector<int>& pairs, int c) {
 }
 
 Player::Player(int weight, int height, int hp, int weightOfBorder, int heightOfBorder) :
-weight(weight), height(height), healthPoints(hp), gamePoints(-100),
-weightOfBorder(weightOfBorder), heightOfBorder(heightOfBorder), anim(0) {
+GameObject(weight, height, hp, -100), weightOfBorder(weightOfBorder), heightOfBorder(heightOfBorder), anim(0) {
     body.emplace_back("(@)");
     body.emplace_back("/|\\");
     body.emplace_back("/ \\");
@@ -185,10 +188,14 @@ void Map::load() {
             a = new Bullet(mass[0], mass[1], now(), static_cast<char>(mass[4]));
         } else if (!mass.empty() and mass[3] == -100) {
             a = new Player(mass[0], mass[1], mass[2], weight, height);
-        } else if (!mass.empty()  and mass[3] == 5) {
-            a = new Block(mass[0], mass[1], mass[2], mass[4]);
+        } else if (!mass.empty() and mass[3] == 5) {
+            a = new Block(mass[0], mass[1], mass[2], mass[4], now(), mass[3]);
+        } else if(!mass.empty() and mass[3] == 1) {
+            a = new AltBlock(mass[0], mass[1], mass[2], mass[4], now(), mass[3]);
         } else if (!mass.empty() and mass[3] == 25) {
-            a = new Enemy(mass[0], mass[1], mass[2], now(), weight, height);
+            a = new Enemy(mass[0], mass[1], mass[2], now(), weight, height, mass[3]);
+        } else if (!mass.empty() and mass[3] == 50) {
+            a = new AltEnemy(mass[0], mass[1], mass[2], now(), weight, height, mass[3]);
         }
 
         if (!mass.empty()) {
@@ -263,10 +270,14 @@ void Map::init(const std::vector<int>& parameters, steady_clock_t last_time, cha
     if (name == "player") {
         a = new Player(weight / 2, height / 2, 100, weight, height);
     } else if (name == "enemy") {
-        a = new Enemy(parameters[0], parameters[1], 25, last_time, weight, height);
+        a = new Enemy(parameters[0], parameters[1], 25, last_time, weight, height, 25);
+    } else if (name == "altEnemy") {
+        a = new AltEnemy(parameters[0], parameters[1], 50, last_time, weight, height, 50);
     } else if (name == "block") {
-        a = new Block(parameters[0], parameters[1], 9999, parameters[2]);
-    } else if (name == "bullet") {
+        a = new Block(parameters[0], parameters[1], 2000, parameters[2], now(), 5);
+    } else if (name == "altBlock") {
+        a = new AltBlock(parameters[0], parameters[1], 200, parameters[2], now(), 1);
+    } if (name == "bullet") {
         if (direction == 'a') {
             a = new Bullet(parameters[0] - 2, parameters[1], last_time, direction);
         } else if (direction == 'd') {
@@ -275,6 +286,30 @@ void Map::init(const std::vector<int>& parameters, steady_clock_t last_time, cha
             a = new Bullet(parameters[0], parameters[1] - 2, last_time, direction);
         } else if (direction == 's') {
             a = new Bullet(parameters[0], parameters[1] + 2, last_time, direction);
+        } else if (direction == 'j') {
+            a = new Bullet(parameters[0] - 2, parameters[1] - 1, last_time, '7');
+            objects.push_back(a);
+            a = new Bullet(parameters[0] - 2, parameters[1], last_time, 'a');
+            objects.push_back(a);
+            a = new Bullet(parameters[0] - 2, parameters[1] + 1, last_time, '1');
+        } else if (direction == 'l') {
+            a = new Bullet(parameters[0] + 2, parameters[1] - 1, last_time, '9');
+            objects.push_back(a);
+            a = new Bullet(parameters[0] + 2, parameters[1], last_time, 'd');
+            objects.push_back(a);
+            a = new Bullet(parameters[0] + 2, parameters[1] + 1, last_time, '3');
+        } else if (direction == 'i') {
+            a = new Bullet(parameters[0] - 1, parameters[1] - 2, last_time, '7');
+            objects.push_back(a);
+            a = new Bullet(parameters[0], parameters[1] - 2, last_time, 'w');
+            objects.push_back(a);
+            a = new Bullet(parameters[0] + 1, parameters[1] - 2, last_time, '9');
+        } else if (direction == 'k') {
+            a = new Bullet(parameters[0] - 1, parameters[1] + 2, last_time, '1');
+            objects.push_back(a);
+            a = new Bullet(parameters[0], parameters[1] + 2, last_time, 's');
+            objects.push_back(a);
+            a = new Bullet(parameters[0] + 1, parameters[1] + 2, last_time, '3');
         }
     }
 

@@ -53,10 +53,10 @@ void printStr(const char* str, int level, int weight) {
 void printFirstScr(int height, int weight) {
     const char* str = "{w, a, s, d} -- to move";
     printStr(str, height / 2 + 2, weight);
-    const char* str1 = "{<, ^, >, v} -- to shoot";
-    printStr(str1, height / 2 + 1, weight);
-    const char* str2 = "q -- to quit, e -- to use";
-    printStr(str2, height / 2, weight);
-    const char* str3 = "[ -- to save, ] -- to load";
-    printStr(str3, height / 2 - 1, weight);
+    str = "{<, ^, >, v} -- to shoot";
+    printStr(str, height / 2 + 1, weight);
+    str = "q -- to quit, e -- to use";
+    printStr(str, height / 2, weight);
+    str = "[ -- to save, ] -- to load";
+    printStr(str, height / 2 - 1, weight);
 }
