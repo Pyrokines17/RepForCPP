@@ -13,7 +13,6 @@ void mainInit() {
 void initPairs(std::vector<int>& pairs) {
     // colors are COLOR_BLACK, COLOR_RED, COLOR_GREEN, COLOR_YELLOW,
     // COLOR_BLUE, COLOR_MAGENTA, COLOR_CYAN, COLOR_WHITE
-
     start_color();
     const int player_color_pair = 1;
     init_pair(player_color_pair, COLOR_BLUE, COLOR_BLACK);
@@ -27,6 +26,9 @@ void initPairs(std::vector<int>& pairs) {
     const int block_color_pair = 4;
     init_pair(block_color_pair, COLOR_GREEN, COLOR_BLACK);
     pairs.push_back(block_color_pair);
+    const int gun_color_pair = 5;
+    init_pair(gun_color_pair, COLOR_YELLOW, COLOR_BLACK);
+    pairs.push_back(gun_color_pair);
 }
 
 void out(int y, int x, const std::string& s) {
@@ -38,25 +40,21 @@ steady_clock_t now() {
     return std::chrono::steady_clock::now();
 }
 
-void print(const char* name, int count, int level, int weight) {
-    size_t title_size = snprintf(nullptr, 0, name, count);
-    wmove(stdscr, level, (weight - static_cast<int>(title_size)) / 2);
-    wprintw(stdscr, name, count);
+void print(const char* str, int count, int height, int weight) {
+    size_t title_size = snprintf(nullptr, 0, str, count);
+    wmove(stdscr, height, (weight - static_cast<int>(title_size)) / 2);
+    wprintw(stdscr, str, count);
 }
 
-void printStr(const char* str, int level, int weight) {
-    size_t title_size = snprintf(nullptr, 0, "%s", str);
-    wmove(stdscr, level, (weight - static_cast<int>(title_size)) / 2);
-    wprintw(stdscr, "%s", str);
-}
-
-void printFirstScr(int height, int weight) {
-    const char* str = "{w, a, s, d} -- to move";
-    printStr(str, height / 2 + 2, weight);
+void printFirstScr(int height, int centre) {
+    std::string str = "How to play:";
+    out(height / 2 - 2, centre, str);
+    str = "{w, a, s, d} -- to move";
+    out(height / 2 - 1, centre, str);
     str = "{<, ^, >, v} -- to shoot";
-    printStr(str, height / 2 + 1, weight);
+    out(height / 2, centre, str);
     str = "q -- to quit, e -- to use";
-    printStr(str, height / 2, weight);
+    out(height / 2 + 1, centre, str);
     str = "[ -- to save, ] -- to load";
-    printStr(str, height / 2 - 1, weight);
+    out(height / 2 + 2, centre, str);
 }

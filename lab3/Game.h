@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <random>
 
+#include "ListOfExcep.h"
 #include "SFML/Audio.hpp"
 #include "SupFuncs.h"
-#include "Objects.h"
+#include "Map.h"

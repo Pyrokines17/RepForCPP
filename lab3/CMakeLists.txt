@@ -33,7 +33,8 @@ if(WIN32 OR MSVC)
 endif()
 
 # описываем основную библиотеку, т.е. библиотеку, содержащую все cpp-файлы, кроме main.cpp
-add_library(corelib OBJECT SupFuncs.cpp Objects.cpp Enemys.cpp Blocks.cpp)
+add_library(corelib OBJECT SupFuncs.cpp Objects.cpp Enemys.cpp Blocks.cpp
+        Map.cpp)
 
 # описываем исполняемый файл основной программы: это main.cpp + основная библиотека
 add_executable(${exe_name} Main.cpp)

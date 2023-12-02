@@ -1,15 +1,18 @@
 #include "Game.h"
 
-int main() { //ToDo exceptions and rooms
+int main() { //maybe ToDo a tunnel or levelSys
     mainInit();
-
     std::random_device rd;
     std::mt19937 gen(rd());
 
-    if (has_colors() == FALSE) {
+    try {
+        if (has_colors() == FALSE) {
+            throw SupOfColor();
+        }
+    } catch (const SupOfColor& e) {
         endwin();
-        std::cerr << "Your terminal does not support color :(" << std::endl;
-        exit(1);
+        std::cerr << e.what();
+        return 4;
     }
 
     std::vector<int> pairs;
@@ -21,10 +24,14 @@ int main() { //ToDo exceptions and rooms
 
     sf::SoundBuffer buf;
 
-    if (!buf.loadFromFile("data.wav")) {
+    try {
+        if (!buf.loadFromFile("data.wav")) {
+            throw CanNotOpen();
+        }
+    } catch (const CanNotOpen& e) {
         endwin();
-        std::cerr << "Unable to open the file :(" << std::endl;
-        exit(1);
+        std::cerr << e.what();
+        return 1;
     }
 
     sf::Sound sound;
@@ -34,8 +41,8 @@ int main() { //ToDo exceptions and rooms
 
     std::uniform_int_distribution<> distH(2, height - 3);
     std::uniform_int_distribution<> distW(2, weight - 3);
-    std::uniform_int_distribution<> distC(10, 20);
-    std::uniform_int_distribution<> distK(0, 1);
+    std::uniform_int_distribution<> distC(10, 30);
+    std::uniform_int_distribution<> distR(0, 1);
 
     int countOfEnemy = distC(gen);
     int countOfBlock = distC(gen);
@@ -44,34 +51,48 @@ int main() { //ToDo exceptions and rooms
 
     map.init(parameters, now(), '-', "player");
 
+    parameters[0] = distW(gen);
+    parameters[1] = distH(gen);
+    map.init(parameters, now(), '-', "gun");
+
     for (int i = 0; i < countOfEnemy; i++) {
         parameters[0] = distW(gen);
         parameters[1] = distH(gen);
-        map.init(parameters, now(), '-', "enemy");
-    }
+        int ran = distR(gen);
 
-    for (int i = 0; i < countOfEnemy / 2; i++) {
-        parameters[0] = distW(gen);
-        parameters[1] = distH(gen);
-        map.init(parameters, now(), '-', "altEnemy");
-    }
-
-    for (int i = 0; i < countOfBlock / 2; i++) {
-        parameters[0] = distW(gen);
-        parameters[1] = distH(gen);
-        parameters[2] = distK(gen);
-        map.init(parameters, now(), '-', "block");
+        if (ran == 0) {
+            map.init(parameters, now(), '-', "enemy");
+        } else {
+            map.init(parameters, now(), '-', "altEnemy");
+        }
     }
 
     for (int i = 0; i < countOfBlock; i++) {
         parameters[0] = distW(gen);
         parameters[1] = distH(gen);
-        parameters[2] = distK(gen);
-        map.init(parameters, now(), '-', "altBlock");
+        parameters[2] = distR(gen);
+        int ran = distR(gen);
+
+        if (ran == 0) {
+            map.init(parameters, now(), '-', "block");
+        } else {
+            map.init(parameters, now(), '-', "altBlock");
+        }
     }
 
     std::ofstream ofile;
-    ofile.open("table.txt", std::ios::app);
+
+    try {
+        ofile.open("table.txt", std::ios::app);
+        if (!ofile.is_open()) {
+            throw CanNotOpen();
+        }
+    } catch (const CanNotOpen& e) {
+        endwin();
+        std::cerr << e.what();
+        return 1;
+    }
+
     std::string strN;
 
     int b;
@@ -85,8 +106,12 @@ int main() { //ToDo exceptions and rooms
             strN.erase(strN.end() - 1);
         }
 
-        out(height / 3, weight / 2, strN);
-        printFirstScr(height, weight);
+        int centre = (weight / 3 + weight / 2) / 2;
+        printFirstScr(height, centre);
+
+        std::string str = "Your name:";
+        out(height / 2 + 3, centre, str);
+        out(height / 2 + 4, centre, strN);
         refresh();
     }
 
@@ -97,30 +122,51 @@ int main() { //ToDo exceptions and rooms
         score = 0;
     while ('q' != (c = getch())) {
         std::ifstream ifile;
-        ifile.open("table.txt", std::ios::binary);
 
-        if (!ifile.is_open()) {
-            refresh();
-            endwin();
-            std::cerr << "File not open :(" << std::endl;
-            exit(1);
+        try {
+            ifile.open("table.txt", std::ios::binary);
+            if (!ifile.is_open()) {
+                throw CanNotOpen();
+            }
+        } catch (const CanNotOpen& e) {
+            res = -1;
+            break;
         }
 
         clear();
         map.drawBorders();
 
         if (c == '[') {
-            map.save();
+            try {
+                map.save();
+            } catch (const CanNotOpen& e) {
+                res = -1;
+                break;
+            }
         } else if (c == ']') {
-            map.load();
+            try {
+                map.load();
+            } catch (const CanNotRead& e) {
+                res = -1;
+                break;
+            }
         }
 
         map.actionOfObj(c);
         map.drawObj(pairs, c);
 
         map.printStat();
-        Map::drawTable(ifile);
+
+        try {
+            Map::drawTable(ifile);
+        } catch (const CanNotRead& e) {
+            res = -1;
+            break;
+        }
+
         res = map.countingOfRes(score);
+
+        map.printText();
 
         if (res > 0) {
             break;
@@ -135,10 +181,11 @@ int main() { //ToDo exceptions and rooms
 
     const char* str;
     switch (res) {
+        case -1: str = "Sth was bad :( Your score: %d"; break;
         case 0: str = "You leave :( Your score: %d"; break;
         case 1: str = "You win! Your score: %d"; break;
         case 2: str = "You lose... Your score: %d"; break;
-        default: ;
+        default: break;
     }
 
     while ('\n' != (c = getch())) {
