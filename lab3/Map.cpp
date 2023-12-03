@@ -7,7 +7,7 @@ weight(weight), height(height), countOfEnemy(countOfEnemy), countOfBlock(countOf
 gamePoints(0), countOfTacts(0) {
 }
 
-void Map::save() const {
+void Map::save() {
     std::ofstream file;
     file.open("save.txt");
 
@@ -24,7 +24,8 @@ void Map::save() const {
             file << " " << static_cast<int>(object->getDir());
         } else if (object->getGP() == 5) {
             file << " " << object->getKit();
-        } else if (object->getGP() == -100 or object->getGP() == 25 or object->getGP() == 50) {
+        } else if (object->getGP() == -100 or
+        object->getGP() == 25 or object->getGP() == 50) {
             file << " " << object->getBul();
             if (object->getGP() == -100) {
                 file << " " << object->getAF();
@@ -43,7 +44,7 @@ void Map::load() {
 
     if (!file.is_open()) {
         countOfTacts = 25;
-        return;
+        throw CanNotOpen();
     }
 
     int param;
@@ -112,6 +113,9 @@ void Map::drawBorders() const {
     out(0, weight - 1, "+");
     out(height - 1, 0, "+");
     out(height - 1, weight - 1, "+");
+    std::string str = "The strange cave";
+    int len = static_cast<int>(str.size());
+    out(0, (weight - len) / 2, str);
 }
 
 void Map::printStat() const {
@@ -141,10 +145,10 @@ void Map::drawTable(std::ifstream& ifile) {
     }
 }
 
-void Map::printText() {
+void Map::printText(const std::string& str) {
     if (countOfTacts > 0) {
-        std::string str = "Save not found :(";
-        out(height - 1, weight / 2, str);
+        int len = static_cast<int>(str.size());
+        out(height - 1, (weight - len) / 2, str);
         countOfTacts--;
     }
 }
@@ -191,63 +195,67 @@ void Map::init(const std::vector<int>& parameters, steady_clock_t last_time, cha
       auto a = new Gun(parameters[0], parameters[1], now());
       objects.push_back(a);
     } else if (name == "bullet") {
-        switch (direction) {
-            case 'a': {
-                auto a = new Bullet(parameters[0] - 2, parameters[1], last_time, direction);
-                objects.push_back(a);
-            } break;
-            case 'd': {
-                auto a = new Bullet(parameters[0] + 2, parameters[1], last_time, direction);
-                objects.push_back(a);
-            } break;
-            case 'w': {
-                auto a = new Bullet(parameters[0], parameters[1] - 2, last_time, direction);
-                objects.push_back(a);
-            } break;
-            case 's': {
-                auto a = new Bullet(parameters[0], parameters[1] + 2, last_time, direction);
-                objects.push_back(a);
-            } break;
+        initBul(parameters, last_time, direction);
+    }
+}
 
-            case 'j': {
-                GameObject* a;
-                a = new Bullet(parameters[0] - 2, parameters[1] - 1, last_time, '7');
-                objects.push_back(a);
-                a = new Bullet(parameters[0] - 2, parameters[1], last_time, 'a');
-                objects.push_back(a);
-                a = new Bullet(parameters[0] - 2, parameters[1] + 1, last_time, '1');
-                objects.push_back(a);
-            } break;
-            case 'l': {
-                GameObject* a;
-                a = new Bullet(parameters[0] + 2, parameters[1] - 1, last_time, '9');
-                objects.push_back(a);
-                a = new Bullet(parameters[0] + 2, parameters[1], last_time, 'd');
-                objects.push_back(a);
-                a = new Bullet(parameters[0] + 2, parameters[1] + 1, last_time, '3');
-                objects.push_back(a);
-            } break;
-            case 'i': {
-                GameObject* a;
-                a = new Bullet(parameters[0] - 1, parameters[1] - 2, last_time, '7');
-                objects.push_back(a);
-                a = new Bullet(parameters[0], parameters[1] - 2, last_time, 'w');
-                objects.push_back(a);
-                a = new Bullet(parameters[0] + 1, parameters[1] - 2, last_time, '9');
-                objects.push_back(a);
-            } break;
-            case 'k': {
-                GameObject* a;
-                a = new Bullet(parameters[0] - 1, parameters[1] + 2, last_time, '1');
-                objects.push_back(a);
-                a = new Bullet(parameters[0], parameters[1] + 2, last_time, 's');
-                objects.push_back(a);
-                a = new Bullet(parameters[0] + 1, parameters[1] + 2, last_time, '3');
-                objects.push_back(a);
-            } break;
+void Map::initBul(const std::vector<int>& parameters, steady_clock_t last_time, char direction) {
+    switch (direction) {
+        case 'a': {
+            auto a = new Bullet(parameters[0] - 2, parameters[1], last_time, direction);
+            objects.push_back(a);
+        } break;
+        case 'd': {
+            auto a = new Bullet(parameters[0] + 2, parameters[1], last_time, direction);
+            objects.push_back(a);
+        } break;
+        case 'w': {
+            auto a = new Bullet(parameters[0], parameters[1] - 2, last_time, direction);
+            objects.push_back(a);
+        } break;
+        case 's': {
+            auto a = new Bullet(parameters[0], parameters[1] + 2, last_time, direction);
+            objects.push_back(a);
+        } break;
 
-            default: break;
-        }
+        case 'j': {
+            GameObject* a;
+            a = new Bullet(parameters[0] - 2, parameters[1] - 1, last_time, '7');
+            objects.push_back(a);
+            a = new Bullet(parameters[0] - 2, parameters[1], last_time, 'a');
+            objects.push_back(a);
+            a = new Bullet(parameters[0] - 2, parameters[1] + 1, last_time, '1');
+            objects.push_back(a);
+        } break;
+        case 'l': {
+            GameObject* a;
+            a = new Bullet(parameters[0] + 2, parameters[1] - 1, last_time, '9');
+            objects.push_back(a);
+            a = new Bullet(parameters[0] + 2, parameters[1], last_time, 'd');
+            objects.push_back(a);
+            a = new Bullet(parameters[0] + 2, parameters[1] + 1, last_time, '3');
+            objects.push_back(a);
+        } break;
+        case 'i': {
+            GameObject* a;
+            a = new Bullet(parameters[0] - 1, parameters[1] - 2, last_time, '7');
+            objects.push_back(a);
+            a = new Bullet(parameters[0], parameters[1] - 2, last_time, 'w');
+            objects.push_back(a);
+            a = new Bullet(parameters[0] + 1, parameters[1] - 2, last_time, '9');
+            objects.push_back(a);
+        } break;
+        case 'k': {
+            GameObject* a;
+            a = new Bullet(parameters[0] - 1, parameters[1] + 2, last_time, '1');
+            objects.push_back(a);
+            a = new Bullet(parameters[0], parameters[1] + 2, last_time, 's');
+            objects.push_back(a);
+            a = new Bullet(parameters[0] + 1, parameters[1] + 2, last_time, '3');
+            objects.push_back(a);
+        } break;
+
+        default: break;
     }
 }
 

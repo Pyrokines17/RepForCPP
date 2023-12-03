@@ -12,7 +12,7 @@ int main() { //maybe ToDo a tunnel or levelSys
     } catch (const SupOfColor& e) {
         endwin();
         std::cerr << e.what();
-        return 4;
+        return 2;
     }
 
     std::vector<int> pairs;
@@ -21,7 +21,6 @@ int main() { //maybe ToDo a tunnel or levelSys
     int height,
         weight;
     getmaxyx(stdscr, height, weight);
-
     sf::SoundBuffer buf;
 
     try {
@@ -30,7 +29,7 @@ int main() { //maybe ToDo a tunnel or levelSys
         }
     } catch (const CanNotOpen& e) {
         endwin();
-        std::cerr << e.what();
+        std::cerr << e.what() << "(data.wav)";
         return 1;
     }
 
@@ -89,7 +88,7 @@ int main() { //maybe ToDo a tunnel or levelSys
         }
     } catch (const CanNotOpen& e) {
         endwin();
-        std::cerr << e.what();
+        std::cerr << e.what() << "(table.txt)";
         return 1;
     }
 
@@ -110,8 +109,8 @@ int main() { //maybe ToDo a tunnel or levelSys
         printFirstScr(height, centre);
 
         std::string str = "Your name:";
-        out(height / 2 + 3, centre, str);
-        out(height / 2 + 4, centre, strN);
+        out(height / 2 + 4, centre, str);
+        out(height / 2 + 5, centre, strN);
         refresh();
     }
 
@@ -120,6 +119,7 @@ int main() { //maybe ToDo a tunnel or levelSys
     int c,
         res = 0,
         score = 0;
+    std::string error;
     while ('q' != (c = getch())) {
         std::ifstream ifile;
 
@@ -149,12 +149,13 @@ int main() { //maybe ToDo a tunnel or levelSys
             } catch (const CanNotRead& e) {
                 res = -1;
                 break;
+            } catch (const CanNotOpen& e) {
+                error = e.what();
             }
         }
 
         map.actionOfObj(c);
         map.drawObj(pairs, c);
-
         map.printStat();
 
         try {
@@ -165,8 +166,7 @@ int main() { //maybe ToDo a tunnel or levelSys
         }
 
         res = map.countingOfRes(score);
-
-        map.printText();
+        map.printText(error);
 
         if (res > 0) {
             break;
@@ -197,5 +197,9 @@ int main() { //maybe ToDo a tunnel or levelSys
 
     endwin();
 
-    return 0;
+    if (res != -1) {
+        return 0;
+    } else {
+        return 1;
+    }
 }

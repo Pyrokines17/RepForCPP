@@ -142,7 +142,6 @@ char Enemy::action(int c, const std::vector<GameObject*>& objects) {
 
         if (reload == 1) {
             countOfBullets++;
-
             if (countOfBullets == 6) {
                 reload = 0;
             }
@@ -265,7 +264,6 @@ char AltEnemy::action(int c, const std::vector<GameObject *> &objects) {
 
         if (reload == 1) {
             countOfBullets++;
-
             if (countOfBullets == 2) {
                 reload = 0;
             }

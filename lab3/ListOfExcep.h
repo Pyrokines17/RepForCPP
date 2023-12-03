@@ -4,7 +4,7 @@
 class CanNotOpen : public std::exception {
 public:
     [[nodiscard]] const char* what() const noexcept override {
-        return "File not open :( ";
+        return "Some file not open :( ";
     }
 };
 
@@ -25,6 +25,6 @@ public:
 class SupOfColor : public std::exception {
 public:
     [[nodiscard]] const char* what() const noexcept override {
-        return "Your terminal does not support color :( ";
+        return "Your terminal does not support color :(";
     }
 };

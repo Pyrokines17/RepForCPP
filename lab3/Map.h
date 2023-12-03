@@ -15,18 +15,19 @@ class Map {
 public:
     Map(int weight, int height, int countOfEnemy, int countOfBlock);
 
-    void save() const;
+    void save();
     void load();
 
     void drawBorders() const;
     void printStat() const;
     static void drawTable(std::ifstream& ifile);
-    void printText();
+    void printText(const std::string& str);
 
     void actionOfObj(int c);
     void drawObj(const std::vector<int>& pairs, int c);
 
     void init(const std::vector<int>& parameters, steady_clock_t last_time, char direction, const std::string& name);
+    void initBul(const std::vector<int>& parameters, steady_clock_t last_time, char direction);
 
     int countingOfRes(int& score);
     void erase();

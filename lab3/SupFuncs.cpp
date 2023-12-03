@@ -57,4 +57,6 @@ void printFirstScr(int height, int centre) {
     out(height / 2 + 1, centre, str);
     str = "[ -- to save, ] -- to load";
     out(height / 2 + 2, centre, str);
+    str = "x -- to change mode (if you can)";
+    out(height / 2 + 3, centre, str);
 }
