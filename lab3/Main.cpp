@@ -1,6 +1,6 @@
 #include "Game.h"
 
-int main() { //maybe ToDo a tunnel or levelSys
+int main() {
     mainInit();
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -40,7 +40,7 @@ int main() { //maybe ToDo a tunnel or levelSys
 
     std::uniform_int_distribution<> distH(2, height - 3);
     std::uniform_int_distribution<> distW(2, weight - 3);
-    std::uniform_int_distribution<> distC(10, 30);
+    std::uniform_int_distribution<> distC(5, 15);
     std::uniform_int_distribution<> distR(0, 1);
 
     int countOfEnemy = distC(gen);
