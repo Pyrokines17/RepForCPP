@@ -99,9 +99,9 @@ int main() {
         clear();
         map.drawBorders();
 
-        if (b >= 'A' and b <= 'z') {
+        if (std::isalpha(b)) {
             strN.push_back(static_cast<char>(b));
-        } else if (b == KEY_BACKSPACE and !strN.empty()) {
+        } else if (b == KEY_BACKSPACE && !strN.empty()) {
             strN.erase(strN.end() - 1);
         }
 

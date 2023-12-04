@@ -24,8 +24,8 @@ void Map::save() {
             file << " " << static_cast<int>(object->getDir());
         } else if (object->getGP() == 5) {
             file << " " << object->getKit();
-        } else if (object->getGP() == -100 or
-        object->getGP() == 25 or object->getGP() == 50) {
+        } else if (object->getGP() == -100 ||
+        object->getGP() == 25 || object->getGP() == 50) {
             file << " " << object->getBul();
             if (object->getGP() == -100) {
                 file << " " << object->getAF();
@@ -51,7 +51,7 @@ void Map::load() {
     std::string str;
     getline(file, str);
 
-    if (file.bad() or file.fail()) {
+    if (file.bad() || file.fail()) {
         throw CanNotRead();
     }
 
@@ -136,7 +136,7 @@ void Map::drawTable(std::ifstream& ifile) {
     int count = 0;
 
     while (std::getline(ifile, str)) {
-        if (ifile.bad() or ifile.fail()) {
+        if (ifile.bad() || ifile.fail()) {
             throw CanNotRead();
         }
 
@@ -266,7 +266,7 @@ int Map::countingOfRes(int& score) {
         if (object->getHP() <= 0) {
             gamePoints += object->getGP();
 
-            if (object->getGP() == 25 or object->getGP() == 50) {
+            if (object->getGP() == 25 || object->getGP() == 50) {
                 countOfEnemy--;
             }
 
@@ -288,8 +288,8 @@ int Map::countingOfRes(int& score) {
 void Map::erase() {
     objects.erase(
             std::remove_if(objects.begin(), objects.end(),
-                           [this](GameObject *b) { return b->getH() < 1 or b->getW() < 1 or
-                           b->getH() > this->height - 2 or b->getW() > this->weight - 2 or
+                           [this](GameObject *b) { return b->getH() < 1 || b->getW() < 1 ||
+                           b->getH() > this->height - 2 || b->getW() > this->weight - 2 ||
                            b->getHP() <= 0; }),
             objects.end()
     );

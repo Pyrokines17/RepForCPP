@@ -12,7 +12,7 @@ GameObject(weight, height, hp, gp), weightOfBorder(weightOfBorder), heightOfBord
 
 int Enemy::checkStep(const std::vector<GameObject*>& objects, int futWeight, int futHeight) {
     for (auto & object : objects) {
-        if (object->getH() == futHeight and object->getW() == futWeight) {
+        if (object->getH() == futHeight && object->getW() == futWeight) {
             return 0;
         }
     }
@@ -25,7 +25,7 @@ int Enemy::look(const std::vector<GameObject *> &objects, char side) {
         distance = 999;
     switch (side) {
         case 'a': for (auto & object : objects) {
-            if (object->getW() < weight and object->getH() >= height - 1 and object->getH() <= height + 1) {
+            if (object->getW() < weight && object->getH() >= height - 1 && object->getH() <= height + 1) {
                 if (weight - object->getW() < distance) {
                     distance = weight - object->getW();
                     id = object->getGP();
@@ -33,7 +33,7 @@ int Enemy::look(const std::vector<GameObject *> &objects, char side) {
             }
         } break;
         case 'd': for (auto & object : objects) {
-            if (object->getW() > weight and object->getH() >= height - 1 and object->getH() <= height + 1) {
+            if (object->getW() > weight && object->getH() >= height - 1 && object->getH() <= height + 1) {
                 if (object->getW() - weight < distance) {
                     distance = object->getW() - weight;
                     id = object->getGP();
@@ -41,7 +41,7 @@ int Enemy::look(const std::vector<GameObject *> &objects, char side) {
             }
         } break;
         case 'w': for (auto & object : objects) {
-            if (object->getH() < height and object->getW() >= weight - 1 and object->getW() <= weight + 1) {
+            if (object->getH() < height && object->getW() >= weight - 1 && object->getW() <= weight + 1) {
                 if (height - object->getH() < distance) {
                     distance = height - object->getH();
                     id = object->getGP();
@@ -49,7 +49,7 @@ int Enemy::look(const std::vector<GameObject *> &objects, char side) {
             }
         } break;
         case 's': for (auto & object : objects) {
-            if (object->getH() > height and object->getW() >= weight - 1 and object->getW() <= weight + 1) {
+            if (object->getH() > height && object->getW() >= weight - 1 && object->getW() <= weight + 1) {
                 if (object->getH() - height < distance) {
                     distance = object->getH() - height;
                     id = object->getGP();
@@ -94,21 +94,21 @@ char Enemy::action(int c, const std::vector<GameObject*>& objects) {
         }
 
         if (step == 0) {
-            if (wt < weight and
-                ((ht > height and weight - wt < ht - height) or
-                 (ht < height and weight - wt < height - ht))) {
+            if (wt < weight &&  
+                ((ht > height && weight - wt < ht - height) ||
+                 (ht < height && weight - wt < height - ht))) {
                 weight--;
-            } else if (wt > weight and
-                       ((ht > height and wt - weight < ht - height) or
-                        (ht < height and wt - weight < height - ht))) {
+            } else if (wt > weight &&
+                       ((ht > height && wt - weight < ht - height) ||
+                        (ht < height && wt - weight < height - ht))) {
                 weight++;
-            } else if (ht > height and
-                       ((wt > weight and wt - weight > ht - height) or
-                        (wt < weight and weight - wt > ht - height))) {
+            } else if (ht > height &&
+                       ((wt > weight && wt - weight > ht - height) ||
+                        (wt < weight && weight - wt > ht - height))) {
                 height++;
-            } else if (ht < height and
-                       ((wt > weight and wt - weight > height - ht) or
-                        (wt < weight and weight - wt > height - ht))) {
+            } else if (ht < height &&
+                       ((wt > weight && wt - weight > height - ht) ||
+                        (wt < weight && weight - wt > height - ht))) {
                 height--;
             }
         }
@@ -116,21 +116,21 @@ char Enemy::action(int c, const std::vector<GameObject*>& objects) {
         int subOfW = wt > weight ? wt - weight : weight - wt,
             subOfH = ht > height ? ht - height : height - ht;
 
-        if (reload == 0 and subOfW <= weightOfBorder / 3 and subOfH <= heightOfBorder / 2) {
-            if (height <= ht + 2 and height >= ht - 2 and weight > wt and
-            look(objects, 'a') != 25 and look(objects, 'a') != 50) {
+        if (reload == 0 && subOfW <= weightOfBorder / 3 && subOfH <= heightOfBorder / 2) {
+            if (height <= ht + 2 && height >= ht - 2 && weight > wt &&
+            look(objects, 'a') != 25 && look(objects, 'a') != 50) {
                 res = 'a';
                 countOfBullets--;
-            } else if (height <= ht + 2 and height >= ht - 2 and weight < wt and
-            look(objects, 'd') != 25 and look(objects, 'd') != 50) {
+            } else if (height <= ht + 2 && height >= ht - 2 && weight < wt &&
+            look(objects, 'd') != 25 && look(objects, 'd') != 50) {
                 res = 'd';
                 countOfBullets--;
-            } else if (weight >= wt - 2 and weight <= wt + 2 and height > ht and
-            look(objects, 'w') != 25 and look(objects, 'w') != 50) {
+            } else if (weight >= wt - 2 && weight <= wt + 2 && height > ht &&
+            look(objects, 'w') != 25 && look(objects, 'w') != 50) {
                 res = 'w';
                 countOfBullets--;
-            } else if (weight >= wt - 2 and weight <= wt + 2 and height < ht and
-            look(objects, 's') != 25 and look(objects, 's') != 50) {
+            } else if (weight >= wt - 2 && weight <= wt + 2 && height < ht &&
+            look(objects, 's') != 25 && look(objects, 's') != 50) {
                 res = 's';
                 countOfBullets--;
             }
@@ -216,21 +216,21 @@ char AltEnemy::action(int c, const std::vector<GameObject *> &objects) {
         }
 
         if (step == 0) {
-            if (wt < weight and
-                ((ht > height and weight - wt < ht - height) or
-                 (ht < height and weight - wt < height - ht))) {
+            if (wt < weight &&
+                ((ht > height && weight - wt < ht - height) ||
+                 (ht < height && weight - wt < height - ht))) {
                 weight--;
-            } else if (wt > weight and
-                       ((ht > height and wt - weight < ht - height) or
-                        (ht < height and wt - weight < height - ht))) {
+            } else if (wt > weight &&
+                       ((ht > height && wt - weight < ht - height) ||
+                        (ht < height && wt - weight < height - ht))) {
                 weight++;
-            } else if (ht > height and
-                       ((wt > weight and wt - weight > ht - height) or
-                        (wt < weight and weight - wt > ht - height))) {
+            } else if (ht > height &&
+                       ((wt > weight && wt - weight > ht - height) ||
+                        (wt < weight && weight - wt > ht - height))) {
                 height++;
-            } else if (ht < height and
-                       ((wt > weight and wt - weight > height - ht) or
-                        (wt < weight and weight - wt > height - ht))) {
+            } else if (ht < height &&
+                       ((wt > weight && wt - weight > height - ht) ||
+                        (wt < weight && weight - wt > height - ht))) {
                 height--;
             }
         }
@@ -238,21 +238,21 @@ char AltEnemy::action(int c, const std::vector<GameObject *> &objects) {
         int subOfW = wt > weight ? wt - weight : weight - wt,
             subOfH = ht > height ? ht - height : height - ht;
 
-        if (reload == 0 and subOfH <= heightOfBorder / 2 and subOfW <= weightOfBorder / 3) {
-            if (height <= ht + 2 and height >= ht - 2 and weight > wt and
-            look(objects, 'a') != 25 and look(objects, 'a') != 50) {
+        if (reload == 0 && subOfH <= heightOfBorder / 2 && subOfW <= weightOfBorder / 3) {
+            if (height <= ht + 2 && height >= ht - 2 && weight > wt &&
+            look(objects, 'a') != 25 && look(objects, 'a') != 50) {
                 res = 'j';
                 countOfBullets--;
-            } else if (height <= ht + 2 and height >= ht - 2 and weight < wt and
-            look(objects, 'd') != 25 and look(objects, 'd') != 50) {
+            } else if (height <= ht + 2 && height >= ht - 2 && weight < wt &&
+            look(objects, 'd') != 25 && look(objects, 'd') != 50) {
                 res = 'l';
                 countOfBullets--;
-            } else if (weight >= wt - 2 and weight <= wt + 2 and height > ht and
-            look(objects, 'w') != 25 and look(objects, 'w') != 50) {
+            } else if (weight >= wt - 2 && weight <= wt + 2 && height > ht &&
+            look(objects, 'w') != 25 && look(objects, 'w') != 50) {
                 res = 'i';
                 countOfBullets--;
-            } else if (weight >= wt - 2 and weight <= wt + 2 and height < ht and
-            look(objects, 's') != 25 and look(objects, 's') != 50) {
+            } else if (weight >= wt - 2 && weight <= wt + 2 && height < ht &&
+            look(objects, 's') != 25 && look(objects, 's') != 50) {
                 res = 'k';
                 countOfBullets--;
             }

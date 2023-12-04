@@ -12,9 +12,9 @@ char Bullet::action(int c, const std::vector<GameObject*>& objects) {
     static_cast<void>(c);
 
     for (auto & object : objects) {
-        if (object != this and object->getGP() != 0) {
-            if (weight >= object->getW() - 1 and weight <= object->getW() + 1 and
-                height >= object->getH() - 1 and height <= object->getH() + 1) {
+        if (object != this && object->getGP() != 0) {
+            if (weight >= object->getW() - 1 && weight <= object->getW() + 1 &&
+                height >= object->getH() - 1 && height <= object->getH() + 1) {
                 object->HPChange(-15);
                 healthPoints--;
             }
@@ -60,7 +60,7 @@ countOfBullets(cob), altFire(altFire), mode(mode) {
 
 int Player::checkStep(const std::vector<GameObject*>& objects, int futWeight, int futHeight) {
     for (auto & object : objects) {
-        if (object->getH() == futHeight and object->getW() == futWeight) {
+        if (object->getH() == futHeight && object->getW() == futWeight) {
             return 0;
         }
     }
@@ -76,8 +76,7 @@ char Player::action(int c, const std::vector<GameObject*>& objects) {
         case 'd': if (checkStep(objects, weight + 1, height)) {weight++;} break;
         case 'w': if (checkStep(objects, weight, height - 1)) {height--;} break;
         case 's': if (checkStep(objects, weight, height + 1)) {height++;} break;
-        case 'r': if (countOfBullets < 12)
-        {if (mode == 1) {countOfBullets++;} else {countOfBullets += 3;}} break;
+        case 'r': if (countOfBullets < 12) {countOfBullets = 12;} break;
         case KEY_LEFT: if (countOfBullets > 0)
         {if (mode == 1) {res = 'a'; countOfBullets--;} else {res = 'j'; countOfBullets -= 3;}} break;
         case KEY_RIGHT: if (countOfBullets > 0)
@@ -103,7 +102,7 @@ void Player::draw(const std::vector<int>& pairs, int c) {
     weight = std::clamp(weight, 2, weightOfBorder - 3);
     height = std::clamp(height, 1, heightOfBorder - 3);
 
-    if (c == 'w' or c == 'a' or c == 's' or c == 'd') {
+    if (c == 'w' || c == 'a' || c == 's' || c == 'd') {
         std::swap(body[1], parts[0]);
         std::swap(body[2], parts[1]);
     }
@@ -125,7 +124,7 @@ char Gun::action(int c, const std::vector<GameObject *> &objects) {
     int subW = objects[0]->getW() - weight;
     int subH = objects[0]->getH() - height;
 
-    if (c == 'e' and (subW * subW + subH * subH <= 2)) {
+    if (c == 'e' && (subW * subW + subH * subH <= 2)) {
         objects[0]->addObj();
         healthPoints = 0;
     }

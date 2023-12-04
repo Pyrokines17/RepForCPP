@@ -11,7 +11,7 @@ char Block::action(int c, const std::vector<GameObject*>& objects) {
     int subW = objects[0]->getW() - weight;
     int subH = objects[0]->getH() - height;
 
-    if (c == 'e' and kit == 1 and (subW * subW + subH * subH <= 2)) {
+    if (c == 'e' && kit == 1 && (subW * subW + subH * subH <= 2)) {
         objects[0]->HPChange(25);
         kit--;
     }

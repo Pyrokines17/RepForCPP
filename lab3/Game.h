@@ -8,6 +8,7 @@
 #include <vector>
 #include <algorithm>
 #include <random>
+#include <cctype>
 
 #include "ListOfExcep.h"
 #include "SFML/Audio.hpp"
