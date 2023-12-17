@@ -197,14 +197,23 @@ std::size_t FlatMap<KeyT, ValueT>::erase(const KeyT& key) {
     }
     else {
         shift(map, count, id, "l");
+
+        map[count - 1].key = KeyT();
+        map[count - 1].value = ValueT();
         count--;
+
         return 1;
     }
 }
 
 template <typename KeyT, typename ValueT>
 void FlatMap<KeyT, ValueT>::clear() {
-    count = 0;
+    while (count > 0) {
+        map[count - 1].key = KeyT();
+        map[count - 1].value = ValueT();
+
+        count--;
+    }
 }
 
 template <typename KeyT, typename ValueT>
