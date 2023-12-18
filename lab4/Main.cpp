@@ -13,15 +13,16 @@ int main() {
 
     std::ifstream csv_stream("test.csv");
     CsvParser<int, std::string, double> parser(csv_stream, 0 /*skip first lines count*/);
-//    for (std::tuple<int, std::string, double> rs : parser) {
-//        std::cout << rs << "\n";
-//    }
-    for (std::tuple<int, std::string, double>
-        rs = parser.begin();
-        rs != parser.end();
-        rs = parser.next()) {
-        std::cout << rs << std::endl;
+    for (std::tuple<int, std::string, double> rs : parser) { //ToDo: fix iteration...
+        std::cout << rs << "\n";
     }
+
+//    for (std::tuple<int, std::string, double>
+//        rs = parser.begin();
+//        rs != parser.end();
+//        rs = parser.next()) {
+//        std::cout << rs << std::endl;
+//    }
 
     std::cout << "_________________" << std::endl;
 
