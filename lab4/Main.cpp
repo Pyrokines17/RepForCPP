@@ -7,22 +7,16 @@ int main() {
 
     std::tuple<int, std::string, double> t = {5, "abcd", 3.14};
     std::cout << t << std::endl;
+
     std::cout << "_________________" << std::endl;
 
     std::cout << std::endl << "_____Task_№2_____" << std::endl;
 
     std::ifstream csv_stream("test.csv");
     CsvParser<int, std::string, double> parser(csv_stream, 0 /*skip first lines count*/);
-    for (std::tuple<int, std::string, double> rs : parser) { //ToDo: fix iteration...
+    for (std::tuple<int, std::string, double> rs : parser) {
         std::cout << rs << "\n";
     }
-
-//    for (std::tuple<int, std::string, double>
-//        rs = parser.begin();
-//        rs != parser.end();
-//        rs = parser.next()) {
-//        std::cout << rs << std::endl;
-//    }
 
     std::cout << "_________________" << std::endl;
 
@@ -56,6 +50,7 @@ int main() {
     for (auto & it : map3) {
         std::cout << it.key << ": " << it.value << std::endl;
     }
+
     std::cout << "_________________" << std::endl;
 
     return 0;

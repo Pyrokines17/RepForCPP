@@ -6,13 +6,13 @@
 
 template <std::size_t I = 0, typename... TupleT>
 typename std::enable_if<(I == sizeof...(TupleT)), void>::type
-printElem([[maybe_unused]] std::tuple<TupleT...> tt, [[maybe_unused]] std::ostream& os) {
+printElem([[maybe_unused]] const std::tuple<TupleT...>& tt, [[maybe_unused]] std::ostream& os) {
     return;
 }
 
 template <std::size_t I = 0, typename... TupleT>
 typename std::enable_if<(I < sizeof...(TupleT)), void>::type
-printElem(std::tuple<TupleT...> tt, std::ostream& os) {
+printElem(const std::tuple<TupleT...>& tt, std::ostream& os) {
     os << std::get<I>(tt) << " ";
     printElem<I + 1>(tt, os);
 }
