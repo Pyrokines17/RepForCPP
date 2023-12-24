@@ -1,20 +1,31 @@
 #include "Tuple.h"
+#include "TupleAdd.h"
 #include "Parser.h"
 #include "FlatMap.h"
 
 int main() {
     std::cout << std::endl << "_____Task_№1_____" << std::endl;
 
+    std::ofstream testFile("test.txt");
     std::tuple<int, std::string, double> t = {5, "abcd", 3.14};
+
     std::cout << t << std::endl;
+    testFile << t << std::endl;
+
+    MyTuple<int, std::string> testTuple(12, "qwe");
+    std::cout << testTuple << std::endl;
 
     std::cout << "_________________" << std::endl;
 
     std::cout << std::endl << "_____Task_№2_____" << std::endl;
 
-    std::ifstream csv_stream("test.csv");
-    CsvParser<int, std::string, double> parser(std::cin, 1 /*skip first lines count*/);
-    for (std::tuple<int, std::string, double> rs : parser) {
+    //std::ifstream csv_stream("test.csv");
+    //std::ifstream csv_stream("test1.csv");
+    std::ifstream csv_stream("test2.csv");
+    CsvParser<int, std::string> parser(csv_stream, 0);
+    //CsvParser<int, std::string, double> parser(std::cin, 0);
+
+    for (const auto& rs : parser) {
         std::cout << rs << "\n";
     }
 

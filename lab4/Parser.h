@@ -21,7 +21,9 @@ class CsvParser {
         std::string buf;
 
         ([&line, &ta, &buf] {
-            std::getline(line, buf, ',');
+            if (!std::getline(line, buf, ',')) {
+                buf = "_";
+            }
             std::stringstream sBuf(buf);
             sBuf >> std::get<IdT>(ta);
         } (), ...);
