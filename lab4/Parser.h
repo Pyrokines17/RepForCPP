@@ -11,7 +11,8 @@
 template <typename... TupleT>
 class CsvParser {
     std::tuple<TupleT...> arr;
-    std::ifstream* input;
+    std::ifstream* input0;
+    std::istream* input1;
     int countOfSkip;
 
     template<typename TupleA, std::size_t... IdT>
@@ -34,10 +35,19 @@ class CsvParser {
     void updateData() {
         std::string str;
 
-        if (std::getline(*input, str)) {
-            addData(arr, str);
+        if (input1 == nullptr) {
+            if (std::getline(*input0, str)) {
+                addData(arr, str);
+            } else {
+                arr = std::tuple<TupleT...>();
+            }
         } else {
-            arr = std::tuple<TupleT...>();
+            std::getline(*input1, str);
+            if (!str.empty()) {
+                addData(arr, str);
+            } else {
+                arr = std::tuple<TupleT...>();
+            }
         }
     }
 
@@ -84,6 +94,7 @@ public:
         };
 
     CsvParser(std::ifstream& instream, int countOfSkip);
+    CsvParser(std::istream& instream, int countOfSkip);
 
     Iterator begin();
     Iterator end();
@@ -92,7 +103,14 @@ public:
 
 template <typename... TupleT>
 CsvParser<TupleT...>::CsvParser(std::ifstream& instream, int countOfSkip) : countOfSkip(countOfSkip) {
-    input = &instream;
+    input0 = &instream;
+    input1 = nullptr;
+}
+
+template <typename... TupleT>
+CsvParser<TupleT...>::CsvParser(std::istream& instream, int countOfSkip) : countOfSkip(countOfSkip) {
+    input1 = &instream;
+    input0 = nullptr;
 }
 
 template<typename... TupleT>
@@ -100,7 +118,11 @@ typename CsvParser<TupleT...>::Iterator CsvParser<TupleT...>::begin() {
     std::string str;
 
     while (countOfSkip > 0) {
-        getline(*input, str);
+        if (input1 == nullptr) {
+            getline(*input0, str);
+        } else {
+            getline(*input1, str);
+        }
         countOfSkip--;
     }
 

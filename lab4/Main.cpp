@@ -13,7 +13,7 @@ int main() {
     std::cout << std::endl << "_____Task_№2_____" << std::endl;
 
     std::ifstream csv_stream("test.csv");
-    CsvParser<int, std::string, double> parser(csv_stream, 0 /*skip first lines count*/);
+    CsvParser<int, std::string, double> parser(std::cin, 1 /*skip first lines count*/);
     for (std::tuple<int, std::string, double> rs : parser) {
         std::cout << rs << "\n";
     }
