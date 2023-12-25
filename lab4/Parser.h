@@ -1,12 +1,37 @@
 #pragma once
 
-#include <iostream>
 #include <algorithm>
+#include <string>
 #include <fstream>
 #include <sstream>
 #include <tuple>
 #include <iterator>
-#include <cstddef>
+
+struct errWithRead : public std::exception {
+    explicit errWithRead(int count, const std::vector<int>& place) : numberOfStr(count), numberOfPlace(place) {
+    };
+
+    [[nodiscard]] std::string getErrorPlace() const {
+        std::string str = " in string № ";
+        std::string numStr = std::to_string(numberOfStr);
+        str += numStr + " (";
+
+        for (int i : numberOfPlace) {
+            std::string numPl = std::to_string(i);
+            str += numPl + ",";
+        }
+
+        str.pop_back();
+        str += ")";
+
+        return str;
+    }
+
+private:
+    int numberOfStr;
+    std::vector<int> numberOfPlace;
+
+};
 
 template <typename... TupleT>
 class CsvParser {
@@ -14,24 +39,40 @@ class CsvParser {
     std::ifstream* input0;
     std::istream* input1;
     int countOfSkip;
+    int countOfRead;
 
     template<typename TupleA, std::size_t... IdT>
     void readStr(TupleA& ta, const std::string& str, std::index_sequence<IdT...>) {
         std::stringstream line(str);
         std::string buf;
+        std::vector<int> place;
+        int err = 0;
 
-        ([&line, &ta, &buf] {
+        ([&line, &ta, &buf, &err, &place] {
             if (!std::getline(line, buf, ',')) {
                 buf = "_";
+                err = 1;
+                place.push_back(IdT + 1);
             }
             std::stringstream sBuf(buf);
-            sBuf >> std::get<IdT>(ta);
+            if (!(sBuf >> std::get<IdT>(ta))) {
+                err = 1;
+                place.push_back(IdT + 1);
+            }
         } (), ...);
+
+        if (err == 1) {
+            throw errWithRead(countOfRead, place);
+        }
     }
 
     template<typename TupleA, std::size_t TupleSize = std::tuple_size_v<TupleA>>
     void addData(TupleA& ta, const std::string& str) {
-        readStr(ta, str, std::make_index_sequence<TupleSize>{});
+        try {
+            readStr(ta, str, std::make_index_sequence<TupleSize>{});
+        } catch (const errWithRead& ex) {
+            std::cerr << std::endl << "Error type while reading" << ex.getErrorPlace() << std::endl;
+        }
     }
 
     void updateData() {
@@ -39,6 +80,7 @@ class CsvParser {
 
         if (input1 == nullptr) {
             if (std::getline(*input0, str)) {
+                ++countOfRead;
                 addData(arr, str);
             } else {
                 arr = std::tuple<TupleT...>();
@@ -46,6 +88,7 @@ class CsvParser {
         } else {
             std::getline(*input1, str);
             if (!str.empty()) {
+                ++countOfRead;
                 addData(arr, str);
             } else {
                 arr = std::tuple<TupleT...>();
@@ -104,13 +147,13 @@ public:
 };
 
 template <typename... TupleT>
-CsvParser<TupleT...>::CsvParser(std::ifstream& instream, int countOfSkip) : countOfSkip(countOfSkip) {
+CsvParser<TupleT...>::CsvParser(std::ifstream& instream, int countOfSkip) : countOfSkip(countOfSkip), countOfRead(0) {
     input0 = &instream;
     input1 = nullptr;
 }
 
 template <typename... TupleT>
-CsvParser<TupleT...>::CsvParser(std::istream& instream, int countOfSkip) : countOfSkip(countOfSkip) {
+CsvParser<TupleT...>::CsvParser(std::istream& instream, int countOfSkip) : countOfSkip(countOfSkip), countOfRead(0) {
     input1 = &instream;
     input0 = nullptr;
 }
@@ -122,8 +165,10 @@ typename CsvParser<TupleT...>::Iterator CsvParser<TupleT...>::begin() {
     while (countOfSkip > 0) {
         if (input1 == nullptr) {
             getline(*input0, str);
+            ++countOfRead;
         } else {
             getline(*input1, str);
+            ++countOfRead;
         }
         countOfSkip--;
     }
