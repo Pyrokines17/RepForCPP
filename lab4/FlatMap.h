@@ -105,26 +105,32 @@ void swap(FlatMap<KeyTS, ValueTS>& m1, FlatMap<KeyTS, ValueTS>& m2) {
 
 template <typename KeyT, typename ValueT, class Compare, class Allocator>
 FlatMap<KeyT, ValueT, Compare, Allocator>::FlatMap() : capacity{ newCells }, count { 0 } {
-    map = new object<KeyT, ValueT>[newCells];
-
-    //map = traits::allocate(alloc, newCells);
-    //traits::construct(alloc, map, object<KeyT, ValueT>());
-
+    //map = new object<KeyT, ValueT>[newCells];
+    map = traits::allocate(alloc, newCells);
+    for (int i = 0; i < newCells; ++i) {
+        traits::construct(alloc, map + i, object<KeyT, ValueT>());
+    }
 }
 
 template <typename KeyT, typename ValueT, class Compare, class Allocator>
 FlatMap<KeyT, ValueT, Compare, Allocator>::FlatMap(const FlatMap& other_map) : capacity{ other_map.capacity }, count{ other_map.count } {
-    map = new object<KeyT, ValueT>[other_map.capacity];
-
-    //map = traits::allocate(alloc, other_map.capacity);
-    //traits::construct(alloc, map, object<KeyT, ValueT>());
+    //map = new object<KeyT, ValueT>[other_map.capacity];
+    map = traits::allocate(alloc, other_map.capacity);
+    for (int i = 0; i < other_map.capacity; ++i) {
+        traits::construct(alloc, map + i, object<KeyT, ValueT>());
+    }
 
     std::copy(other_map.map, other_map.map + other_map.count, map);
 }
 
 template <typename KeyT, typename ValueT, class Compare, class Allocator>
 FlatMap<KeyT, ValueT, Compare, Allocator>::~FlatMap() {
-    delete[] map;
+    //delete[] map;
+
+    for (int i = 0; i < capacity; ++i) {
+        traits::destroy(alloc, map + i);
+    }
+
 }
 
 template <typename KeyT, typename ValueT, class Compare, class Allocator>
@@ -149,10 +155,11 @@ ValueT& FlatMap<KeyT, ValueT, Compare, Allocator>::operator [] (const KeyT& key)
     if (capacity == 0) {
         FlatMap copy(*this);
 
-        copy.map = new object<KeyT, ValueT>[newCells];
-
-        //copy.map = traits::allocate(alloc, newCells);
-        //traits::construct(alloc, map, object<KeyT, ValueT>());
+        //copy.map = new object<KeyT, ValueT>[newCells];
+        copy.map = traits::allocate(alloc, newCells);
+        for (int i = 0; i < newCells; ++i) {
+            traits::construct(alloc, copy.map + i, object<KeyT, ValueT>());
+        }
 
         copy.capacity = newCells;
 
@@ -169,14 +176,18 @@ ValueT& FlatMap<KeyT, ValueT, Compare, Allocator>::operator [] (const KeyT& key)
     if (count == capacity) {
         FlatMap copy(*this);
 
-        auto* altMap = new object<KeyT, ValueT>[copy.capacity + newCells];
-
-        //auto altMap = traits::allocate(alloc, copy.capacity + newCells);
-        //traits::construct(alloc, map, object<KeyT, ValueT>());
+        //auto altMap = new object<KeyT, ValueT>[copy.capacity + newCells];
+        auto altMap = traits::allocate(alloc, copy.capacity + newCells);
+        for (int i = 0; i < copy.capacity + newCells; ++i) {
+            traits::construct(alloc, map + i, object<KeyT, ValueT>());
+        }
 
         std::copy(copy.map, copy.map + copy.count, altMap);
 
-        delete[] copy.map;
+        //delete[] copy.map;
+        for (int i = 0; i < copy.capacity; ++i) {
+            traits::destroy(alloc, copy.map + i);
+        }
 
         copy.map = altMap;
         copy.capacity += newCells;
