@@ -20,13 +20,13 @@ int main() {
     std::cout << std::endl << "_____Task_№2_____" << std::endl;
 
     //std::ifstream csv_stream("test.csv");
-    //std::ifstream csv_stream("test1.csv");
-    std::ifstream csv_stream("test2.csv");
+    std::ifstream csv_stream("test1.csv");
+    //std::ifstream csv_stream("test2.csv");
     CsvParser<int, std::string> parser(csv_stream, 0);
     //CsvParser<int, std::string, double> parser(std::cin, 0);
 
     for (const auto& rs : parser) {
-        std::cout << rs << "\n";
+        std::cout << rs << std::endl;
     }
 
     std::cout << "_________________" << std::endl;

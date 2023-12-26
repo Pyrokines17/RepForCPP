@@ -2,24 +2,32 @@
 
 #include <iostream>
 #include <algorithm>
+#include <functional>
 #include <string>
 #include <sstream>
+#include <initializer_list>
 
 const int newCells = 4;
 
-template <typename KeyT, typename ValueT>
-class FlatMap {
-    struct object {
-        KeyT key;
-        ValueT value;
-    };
+template<typename KeyT, typename ValueT>
+struct object {
+    KeyT key;
+    ValueT value;
+};
 
-    object* map;
+template <typename KeyT, typename ValueT,
+        class Compare = std::less<KeyT>,
+        class Allocator = std::allocator<object<KeyT, ValueT>>>
+class FlatMap {
+    Allocator alloc;
+    object<KeyT, ValueT>* map;
     int capacity;
     int count;
 
-    static int binSearch(object arr[], int low, int high, const KeyT& x);
-    static void shift(object* place, int border, int index, const std::string& mode);
+    using traits = std::allocator_traits<decltype(alloc)>;
+
+    static int binSearch(object<KeyT, ValueT> arr[], int low, int high, const KeyT& x, Compare comp = Compare());
+    static void shift(object<KeyT, ValueT>* place, int border, int index, const std::string& mode);
 
     template <typename KeyTS, typename ValueTS>
     friend void swap(FlatMap<KeyTS, ValueTS>& m1, FlatMap<KeyTS, ValueTS>& m2);
@@ -29,25 +37,25 @@ public:
     FlatMap(const FlatMap& other_map);
     ~FlatMap();
 
-    FlatMap& operator=(const FlatMap& other_map);
+    FlatMap& operator = (const FlatMap& other_map);
     [[nodiscard]] std::size_t size() const;
-    ValueT& operator[](const KeyT& key);
+    ValueT& operator [] (const KeyT& key);
 
     bool contains(const KeyT& key);
     std::size_t erase(const KeyT& key);
     void clear();
 
     FlatMap(FlatMap&& x) noexcept;
-    FlatMap& operator=(FlatMap&& x) noexcept;
+    FlatMap& operator = (FlatMap&& x) noexcept;
 
-    object* begin();
-    object* end();
-    object* find(const KeyT& x);
+    object<KeyT, ValueT>* begin();
+    object<KeyT, ValueT>* end();
+    object<KeyT, ValueT>* find(const KeyT& x);
 
 };
 
-template <typename KeyT, typename ValueT>
-int FlatMap<KeyT, ValueT>::binSearch(object arr[], int low, int high, const KeyT& x) {
+template <typename KeyT, typename ValueT, class Compare, class Allocator>
+int FlatMap<KeyT, ValueT, Compare, Allocator>::binSearch(object<KeyT, ValueT> arr[], int low, int high, const KeyT& x, Compare comp) {
     while (low <= high) {
         int mid = low + (high - low) / 2;
 
@@ -55,7 +63,7 @@ int FlatMap<KeyT, ValueT>::binSearch(object arr[], int low, int high, const KeyT
             return mid;
         }
 
-        if (arr[mid].key < x) {
+        if (comp(arr[mid].key, x)) {
             low = mid + 1;
         }
         else {
@@ -66,8 +74,8 @@ int FlatMap<KeyT, ValueT>::binSearch(object arr[], int low, int high, const KeyT
     return (-1 * low - 1);
 }
 
-template <typename KeyT, typename ValueT>
-void FlatMap<KeyT, ValueT>::shift(object* place, int border, int index, const std::string& mode) {
+template <typename KeyT, typename ValueT, class Compare, class Allocator>
+void FlatMap<KeyT, ValueT, Compare, Allocator>::shift(object<KeyT, ValueT>* place, int border, int index, const std::string& mode) {
     if (mode == "r") {
         int end = border;
 
@@ -95,25 +103,32 @@ void swap(FlatMap<KeyTS, ValueTS>& m1, FlatMap<KeyTS, ValueTS>& m2) {
     swap(m1.count, m2.count);
 }
 
-template <typename KeyT, typename ValueT>
-FlatMap<KeyT, ValueT>::FlatMap() : capacity{ newCells }, count { 0 } {
-    map = new object[newCells];
+template <typename KeyT, typename ValueT, class Compare, class Allocator>
+FlatMap<KeyT, ValueT, Compare, Allocator>::FlatMap() : capacity{ newCells }, count { 0 } {
+    map = new object<KeyT, ValueT>[newCells];
+
+    //map = traits::allocate(alloc, newCells);
+    //traits::construct(alloc, map, object<KeyT, ValueT>());
+
 }
 
-template <typename KeyT, typename ValueT>
-FlatMap<KeyT, ValueT>::FlatMap(const FlatMap& other_map) : capacity{ other_map.capacity }, count{ other_map.count } {
-    map = new object[other_map.capacity];
+template <typename KeyT, typename ValueT, class Compare, class Allocator>
+FlatMap<KeyT, ValueT, Compare, Allocator>::FlatMap(const FlatMap& other_map) : capacity{ other_map.capacity }, count{ other_map.count } {
+    map = new object<KeyT, ValueT>[other_map.capacity];
+
+    //map = traits::allocate(alloc, other_map.capacity);
+    //traits::construct(alloc, map, object<KeyT, ValueT>());
 
     std::copy(other_map.map, other_map.map + other_map.count, map);
 }
 
-template <typename KeyT, typename ValueT>
-FlatMap<KeyT, ValueT>::~FlatMap() {
+template <typename KeyT, typename ValueT, class Compare, class Allocator>
+FlatMap<KeyT, ValueT, Compare, Allocator>::~FlatMap() {
     delete[] map;
 }
 
-template <typename KeyT, typename ValueT>
-FlatMap<KeyT, ValueT>& FlatMap<KeyT, ValueT>::operator=(const FlatMap& other_map) {
+template <typename KeyT, typename ValueT, class Compare, class Allocator>
+FlatMap<KeyT, ValueT, Compare, Allocator>& FlatMap<KeyT, ValueT, Compare, Allocator>::operator=(const FlatMap& other_map) {
     if (this == &other_map) {
         return *this;
     }
@@ -124,17 +139,21 @@ FlatMap<KeyT, ValueT>& FlatMap<KeyT, ValueT>::operator=(const FlatMap& other_map
     return *this;
 }
 
-template <typename KeyT, typename ValueT>
-std::size_t FlatMap<KeyT, ValueT>::size() const {
+template <typename KeyT, typename ValueT, class Compare, class Allocator>
+std::size_t FlatMap<KeyT, ValueT, Compare, Allocator>::size() const {
     return count;
 }
 
-template <typename KeyT, typename ValueT>
-ValueT& FlatMap<KeyT, ValueT>::operator[](const KeyT& key) {
+template <typename KeyT, typename ValueT, class Compare, class Allocator>
+ValueT& FlatMap<KeyT, ValueT, Compare, Allocator>::operator [] (const KeyT& key) {
     if (capacity == 0) {
         FlatMap copy(*this);
 
-        copy.map = new object[newCells];
+        copy.map = new object<KeyT, ValueT>[newCells];
+
+        //copy.map = traits::allocate(alloc, newCells);
+        //traits::construct(alloc, map, object<KeyT, ValueT>());
+
         copy.capacity = newCells;
 
         swap(copy, *this);
@@ -150,7 +169,11 @@ ValueT& FlatMap<KeyT, ValueT>::operator[](const KeyT& key) {
     if (count == capacity) {
         FlatMap copy(*this);
 
-        auto* altMap = new object[copy.capacity + newCells];
+        auto* altMap = new object<KeyT, ValueT>[copy.capacity + newCells];
+
+        //auto altMap = traits::allocate(alloc, copy.capacity + newCells);
+        //traits::construct(alloc, map, object<KeyT, ValueT>());
+
         std::copy(copy.map, copy.map + copy.count, altMap);
 
         delete[] copy.map;
@@ -175,8 +198,8 @@ ValueT& FlatMap<KeyT, ValueT>::operator[](const KeyT& key) {
     return map[id].value;
 }
 
-template <typename KeyT, typename ValueT>
-bool FlatMap<KeyT, ValueT>::contains(const KeyT& key) {
+template <typename KeyT, typename ValueT, class Compare, class Allocator>
+bool FlatMap<KeyT, ValueT, Compare, Allocator>::contains(const KeyT& key) {
     if (count == 0) {
         return false;
     }
@@ -184,8 +207,8 @@ bool FlatMap<KeyT, ValueT>::contains(const KeyT& key) {
     return binSearch(map, 0, count - 1, key) >= 0;
 }
 
-template <typename KeyT, typename ValueT>
-std::size_t FlatMap<KeyT, ValueT>::erase(const KeyT& key) {
+template <typename KeyT, typename ValueT, class Compare, class Allocator>
+std::size_t FlatMap<KeyT, ValueT, Compare, Allocator>::erase(const KeyT& key) {
     if (count == 0) {
         return 0;
     }
@@ -206,8 +229,8 @@ std::size_t FlatMap<KeyT, ValueT>::erase(const KeyT& key) {
     }
 }
 
-template <typename KeyT, typename ValueT>
-void FlatMap<KeyT, ValueT>::clear() {
+template <typename KeyT, typename ValueT, class Compare, class Allocator>
+void FlatMap<KeyT, ValueT, Compare, Allocator>::clear() {
     while (count > 0) {
         map[count - 1].key = KeyT();
         map[count - 1].value = ValueT();
@@ -216,15 +239,15 @@ void FlatMap<KeyT, ValueT>::clear() {
     }
 }
 
-template <typename KeyT, typename ValueT>
-FlatMap<KeyT, ValueT>::FlatMap(FlatMap&& x) noexcept : map{ x.map }, capacity{ x.capacity }, count{ x.count } {
+template <typename KeyT, typename ValueT, class Compare, class Allocator>
+FlatMap<KeyT, ValueT, Compare, Allocator>::FlatMap(FlatMap&& x) noexcept : map{ x.map }, capacity{ x.capacity }, count{ x.count } {
     x.map = nullptr;
     x.capacity = 0;
     x.count = 0;
 }
 
-template <typename KeyT, typename ValueT>
-FlatMap<KeyT, ValueT>& FlatMap<KeyT, ValueT>::operator=(FlatMap&& x) noexcept {
+template <typename KeyT, typename ValueT, class Compare, class Allocator>
+FlatMap<KeyT, ValueT, Compare, Allocator>& FlatMap<KeyT, ValueT, Compare, Allocator>::operator=(FlatMap&& x) noexcept {
     if (this == &x) {
         return *this;
     }
@@ -235,18 +258,18 @@ FlatMap<KeyT, ValueT>& FlatMap<KeyT, ValueT>::operator=(FlatMap&& x) noexcept {
     return *this;
 }
 
-template <typename KeyT, typename ValueT>
-typename FlatMap<KeyT, ValueT>::object* FlatMap<KeyT, ValueT>::begin() {
+template <typename KeyT, typename ValueT, class Compare, class Allocator>
+typename ::object<KeyT, ValueT>* FlatMap<KeyT, ValueT, Compare, Allocator>::begin() {
     return map;
 }
 
-template <typename KeyT, typename ValueT>
-typename FlatMap<KeyT, ValueT>::object* FlatMap<KeyT, ValueT>::end() {
+template <typename KeyT, typename ValueT, class Compare, class Allocator>
+typename ::object<KeyT, ValueT>* FlatMap<KeyT, ValueT, Compare, Allocator>::end() {
     return map + count;
 }
 
-template <typename KeyT, typename ValueT>
-typename FlatMap<KeyT, ValueT>::object* FlatMap<KeyT, ValueT>::find(const KeyT& x) {
+template <typename KeyT, typename ValueT, class Compare, class Allocator>
+typename ::object<KeyT, ValueT>* FlatMap<KeyT, ValueT, Compare, Allocator>::find(const KeyT& x) {
     if (count == 0) {
         return map;
     }

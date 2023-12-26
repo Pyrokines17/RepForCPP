@@ -6,6 +6,7 @@
 #include <sstream>
 #include <tuple>
 #include <iterator>
+#include <vector>
 
 struct errWithRead : public std::exception {
     explicit errWithRead(int count, const std::vector<int>& place) : numberOfStr(count), numberOfPlace(place) {
@@ -36,6 +37,7 @@ private:
 template <typename... TupleT>
 class CsvParser {
     std::tuple<TupleT...> arr;
+    std::vector<std::string> rest;
     std::ifstream* input0;
     std::istream* input1;
     int countOfSkip;
@@ -49,17 +51,21 @@ class CsvParser {
         int err = 0;
 
         ([&line, &ta, &buf, &err, &place] {
-            if (!std::getline(line, buf, ',')) {
+            if (!std::getline(line, buf, ',') || buf.empty()) {
                 buf = "_";
                 err = 1;
                 place.push_back(IdT + 1);
             }
             std::stringstream sBuf(buf);
-            if (!(sBuf >> std::get<IdT>(ta))) {
+            if (!(sBuf >> std::get<IdT>(ta)) && err == 0) {
                 err = 1;
                 place.push_back(IdT + 1);
             }
         } (), ...);
+
+        while (std::getline(line, buf, ',')) {
+            rest.push_back(buf);
+        }
 
         if (err == 1) {
             throw errWithRead(countOfRead, place);
@@ -76,6 +82,7 @@ class CsvParser {
     }
 
     void updateData() {
+        rest.clear();
         std::string str;
 
         if (input1 == nullptr) {
@@ -101,21 +108,26 @@ public:
     public:
         using iteratorCategory [[maybe_unused]] = std::input_iterator_tag;
         using differenceType [[maybe_unused]] = std::ptrdiff_t;
-        using valueType [[maybe_unused]] = std::tuple<TupleT...>;
-        using pointer = std::tuple<TupleT...>*;
-        using reference = std::tuple<TupleT...>&;
+        using valueType = std::tuple<TupleT...>;
+        using pointer = valueType*;
+        using reference = valueType&;
 
-        Iterator(pointer ptr, CsvParser<TupleT...>& prs) : m_ptr(ptr) {
+        Iterator(pointer ptr, CsvParser<TupleT...>& prs, std::vector<std::string>& restOfIer) : m_ptr(ptr), restOfIter(restOfIer) {
             pars = &prs;
             buf = *ptr;
         };
 
-        reference operator * () const { return *m_ptr; }
-        pointer operator -> () { return m_ptr; }
+        reference operator * () const {
+            return *m_ptr;
+        }
+        pointer operator -> () {
+            return m_ptr;
+        }
 
         Iterator& operator ++ () {
             pars->updateData();
             buf = pars->arr;
+            restOfIter = pars->getRest();
             return *this;
         }
         Iterator operator ++ (int) {
@@ -125,21 +137,24 @@ public:
         }
 
         friend bool operator == (const Iterator& a, const Iterator& b) {
-            return a.buf == b.buf;
+            return (a.buf == b.buf && a.restOfIter == b.restOfIter);
         };
         friend bool operator != (const Iterator& a, const Iterator& b) {
-            return a.buf != b.buf;
+            return (a.buf != b.buf || a.restOfIter != b.restOfIter);
         };
 
         private:
             pointer m_ptr;
-            std::tuple<TupleT...> buf;
+            valueType buf;
             CsvParser<TupleT...>* pars;
+            std::vector<std::string> restOfIter;
 
         };
 
     CsvParser(std::ifstream& instream, int countOfSkip);
     CsvParser(std::istream& instream, int countOfSkip);
+
+    std::vector<std::string> getRest() {return rest;};
 
     Iterator begin();
     Iterator end();
@@ -173,11 +188,12 @@ typename CsvParser<TupleT...>::Iterator CsvParser<TupleT...>::begin() {
         countOfSkip--;
     }
 
-    return ++Iterator(&arr, *this);
+    return ++Iterator(&arr, *this, rest);
 }
 
 template<typename... TupleT>
 typename CsvParser<TupleT...>::Iterator CsvParser<TupleT...>::end() {
     std::tuple<TupleT...> clear;
-    return Iterator(&clear, *this);
+    std::vector<std::string> clearV;
+    return Iterator(&clear, *this, clearV);
 }
