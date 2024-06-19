@@ -24,7 +24,7 @@ else()
 endif()
 
 # описываем основную библиотеку, т.е. библиотеку, содержащую все cpp-файлы, кроме main.cpp
-add_library(corelib OBJECT )
+add_library(corelib OBJECT SourceTests.cpp)
 
 # описываем исполняемый файл основной программы: это main.cpp + основная библиотека
 add_executable(${exe_name} Main.cpp)
